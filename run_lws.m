@@ -35,6 +35,11 @@
 addpath('./c')
 addpath('./matlab')
 
+%% Deal with the wavread/audioread and wavwrite/audiowrite annoyance
+useaudioread = 0;
+if exist('audioread','file')
+    useaudioread = 1;
+end
 %% Pipeline
 do_no_future_lws = 1;
 do_online_lws    = 1;
@@ -52,7 +57,11 @@ S=sqrt((0.5-0.5*cos(2*pi*(1:2:2*N-1)'/(2*N)))/Q*2);
 
 %% Get the wav file in
 infile='rwc-g-01-16k_ex.wav';
-[x,fs]=wavread(infile);
+if useaudioread
+    [x,fs]=audioread(infile);
+else
+    [x,fs]=wavread(infile);
+end
 if size(x,2)>1, fprintf('This code only handles single channel files\n'); return; end
 fprintf(1,'Processing file: %s (length: %.2f s)\n',infile,length(x)/fs);
 X=stft(x,N,wshift,W);
@@ -83,7 +92,11 @@ if do_no_future_lws
     fprintf(1,'No future init  : %5.2f dB (time: %.2f s)\n',C0,time_nofuture_lws);
     if output_wav
         x0=istft(X0,wshift,S);
-        wavwrite(x0,fs,'out_nofuture_lws.wav')
+        if useaudioread
+            audiowrite('out_nofuture_lws.wav',x0,fs);
+        else
+            wavwrite(x0,fs,'out_nofuture_lws.wav');
+        end
     end
 
 else
@@ -108,7 +121,11 @@ if do_online_lws
     fprintf(1,'Online LWS      : %5.2f dB (time: %.2f s)\n',C1,time_online_lws);
     if output_wav
         x1=istft(X1,wshift,S);
-        wavwrite(x1,fs,'out_online_lws.wav')
+        if useaudioread
+            audiowrite('out_online_lws.wav',x1,fs);
+        else
+            wavwrite(x1,fs,'out_online_lws.wav');
+        end
     end
 
 else
@@ -132,7 +149,11 @@ if do_batch_lws
     fprintf(1,'Online+batch LWS: %5.2f dB (time: %.2f s)\n',Cfinal,time_bach_lws);
     if output_wav
         y=istft(Y,wshift,S);
-        wavwrite(y,fs,'out_batch_lws.wav')
+        if useaudioread
+            audiowrite('out_batch_lws.wav',y,fs);
+        else
+            wavwrite(y,fs,'out_batch_lws.wav');
+        end
     end
 
 else
