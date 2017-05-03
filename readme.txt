@@ -45,22 +45,26 @@ Proc. of ASJ Autumn Meeting, 3-10-3, Sep. 2010.
   month =	 mar
 }
 
+Remark: the .cpp files are actually C code with some C99 style comments, but the .cpp extension is needed on Windows for mex to acknowledge the c99 flag (with .c, it is discarded, and -ansi used instead, leading to compilation errors)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-Installation:
+# Installation:
 
+## Matlab 
 1) Compiling mex files
 
-mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output lws c/lws_functions.cpp matlab/lws.cpp
-mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws c/lws_functions.cpp matlab/online_lws.cpp
-mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws c/lws_functions.cpp matlab/nofuture_lws.cpp
+    mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output lws c/lws_functions.cpp matlab/lws.cpp
+    mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws c/lws_functions.cpp matlab/online_lws.cpp
+    mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws c/lws_functions.cpp matlab/nofuture_lws.cpp
 
 2) Usage
 
 Please follow/modify run_lws.m.
 Three steps are implemented, and they can be turned on/off independently:
-- "no future" LWS: phase initialization using LWS updates that only involve past frames
-- online LWS: phase estimation using online LWS updates, corresponding to a fast time-frequency domain version of RTISI-LA
-- LWS: phase estimation using batch LWS updates on the whole spectrogram
+  * "no future" LWS: phase initialization using LWS updates that only involve past frames
+  * online LWS: phase estimation using online LWS updates, corresponding to a fast time-frequency domain version of RTISI-LA
+  * LWS: phase estimation using batch LWS updates on the whole spectrogram
 
+## Python

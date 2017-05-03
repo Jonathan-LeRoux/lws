@@ -1,4 +1,4 @@
-/* NOFUTURE_LWS.C Perform phase initialization using LWS updates that only involve past frames
+/* NOFUTURE_LWS.CPP Perform phase initialization using LWS updates that only involve past frames
  * Syntax:    s_out = nofuture_lws(s_in, weights, thresholds)
  *
  * Copyright (C) 2008-2017 Jonathan Le Roux

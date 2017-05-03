@@ -1,4 +1,4 @@
-/* LWS.C Construct consistent phase using Local Weighted Sums (LWS)
+/* LWS.CPP Construct consistent phase using Local Weighted Sums (LWS)
  * Syntax:    s_out = lws(s_in, weights, thresholds)
  *
  * Copyright (C) 2008-2017 Jonathan Le Roux
