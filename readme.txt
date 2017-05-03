@@ -2,16 +2,16 @@ Phase recovery using Local Weighted Sums (LWS)
 Author: Jonathan Le Roux -- 2008-2017
 
 The LWS software includes the following files:
-build_asymmetric_windows.m  # code to build assymetric windows as in RTISI-LA (Matlab) 
-run_lws.m                   # example script (Matlab)
-lib/create_weights.m        # code to create complex weights used in LWS (Matlab)
-lib/istft.m                 # inverse STFT code (matlab)
-lib/lws.c                   # mex file for LWS
-lib/lws_functions.c         # core functions
-lib/lws_functions.h  
-lib/nofuture_lws.c          # mex file for "no future" LWS initialization
-lib/online_lws.c            # mex file for online LWS
-lib/stft.m                  # STFT code (matlab)
+run_lws.m                          # example script (Matlab)
+c/lws_functions.c                  # core functions
+c/lws_functions.h                  # header file
+matlab/build_asymmetric_windows.m  # code to build assymetric windows as in RTISI-LA (Matlab) 
+matlab/create_weights.m            # code to create complex weights used in LWS (Matlab)
+matlab/istft.m                     # inverse STFT code (matlab)
+matlab/stft.m                      # STFT code (matlab)
+matlab/lws.c                       # mex file for LWS
+matlab/nofuture_lws.c              # mex file for "no future" LWS initialization
+matlab/online_lws.c                # mex file for online LWS
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   Copyright (C) 2008-2017 Jonathan Le Roux
@@ -51,9 +51,9 @@ Installation:
 
 1) Compiling mex files
 
-mex -O CFLAGS="\$CFLAGS -std=c99" -output lws lib/lws_functions.c lib/lws.c
-mex -O CFLAGS="\$CFLAGS -std=c99" -output online_lws lib/lws_functions.c lib/online_lws.c
-mex -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws lib/lws_functions.c lib/nofuture_lws.c
+mex -O CFLAGS="\$CFLAGS -std=c99" -output lws c/lws_functions.c matlab/lws.c
+mex -O CFLAGS="\$CFLAGS -std=c99" -output online_lws c/lws_functions.c matlab/online_lws.c
+mex -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws c/lws_functions.c matlab/nofuture_lws.c
 
 2) Usage
 

@@ -339,8 +339,8 @@ void LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double
                             ci = Si[ip-k];
                             tempr+= ar*(br+cr)-ai*(bi-ci);
                             tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
-		        if (w_flag[modneg+u+k]) {
+            }
+                if (w_flag[modneg+u+k]) {
                             ar = wr[modneg+u+k];
                             ai = wi[modneg+u+k];
                             br = Sr[ip+k];
@@ -564,8 +564,8 @@ void NoFuture_LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_fla
                             bi = Si[im-k];
                             tempr+= ar*(br)-ai*(bi);
                             tempi+= ar*(bi)+ai*(br);
-			}
-		        if (w_flag[modneg+u+k]) {
+            }
+                if (w_flag[modneg+u+k]) {
                             ar = wr[modneg+u+k];
                             ai = wi[modneg+u+k];
                             cr = Sr[im+k];
@@ -645,18 +645,18 @@ void Asym_UpdatePhaseQ2(double *Sr, double *Si, double *wr, double *wi, int *w_f
                         tempr+=Sr[m*Np+n]/Q;
                         tempi+=Si[m*Np+n]/Q;
                     }
-		    for(k=1;k<L+1;k++){
-		        if (w_flag[mod+k]) {
-			    ar = wr[mod+k];
-			    ai = wi[mod+k];
-			    br = Sr[m*Np+n-k];
-			    bi = Si[m*Np+n-k];
-			    cr = Sr[m*Np+n+k];
-			    ci = Si[m*Np+n+k];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
-		    }
+            for(k=1;k<L+1;k++){
+                if (w_flag[mod+k]) {
+                ar = wr[mod+k];
+                ai = wi[mod+k];
+                br = Sr[m*Np+n-k];
+                bi = Si[m*Np+n-k];
+                cr = Sr[m*Np+n+k];
+                ci = Si[m*Np+n+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
+            }
                 }
                 
                 for(r=1;r<rframe;r++){// add frames  at m+/-r (i.e., on left and right)
@@ -671,45 +671,45 @@ void Asym_UpdatePhaseQ2(double *Sr, double *Si, double *wr, double *wi, int *w_f
                         bi = Si[im];
                         cr = Sr[ip];
                         ci = Si[ip];
-			tempr+= ar*(br+cr)-ai*(bi-ci);
-			tempi+= ar*(bi+ci)+ai*(br-cr);  
-		    } 
+            tempr+= ar*(br+cr)-ai*(bi-ci);
+            tempi+= ar*(bi+ci)+ai*(br-cr);  
+            } 
                     for(k=1;k<L+1;k++){
-		        if (w_flag[mod+u+k]) {
-  			    ar = wr[mod+u+k];
-			    ai = wi[mod+u+k];
-			    br = Sr[im-k] + Sr[ip+k];
-			    bi = Si[im-k] + Si[ip+k];
-			    cr = Sr[ip-k] + Sr[im+k];
-			    ci = Si[ip-k] + Si[im+k];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
+                if (w_flag[mod+u+k]) {
+                  ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k] + Sr[ip+k];
+                bi = Si[im-k] + Si[ip+k];
+                cr = Sr[ip-k] + Sr[im+k];
+                ci = Si[ip-k] + Si[im+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
                     }
                 }
                 
                 for(r=rframe;r<Q;r++){ // for those only the left frames should be added
                     int u = r*(L+1);
                     int im = (m-r)*Np + n;
-		    if (w_flag[mod+u]) {
-		        ar = wr[mod+u];
-			ai = wi[mod+u];
-			br = Sr[im];
-			bi = Si[im];
-			tempr+= ar*br-ai*bi;
-			tempi+= ar*bi+ai*br;
-		    }    
+            if (w_flag[mod+u]) {
+                ar = wr[mod+u];
+            ai = wi[mod+u];
+            br = Sr[im];
+            bi = Si[im];
+            tempr+= ar*br-ai*bi;
+            tempi+= ar*bi+ai*br;
+            }    
                     for(k=1;k<L+1;k++){
-		        if (w_flag[mod+u+k]) {
-  			    ar = wr[mod+u+k];
-			    ai = wi[mod+u+k];
-			    br = Sr[im-k];
-			    bi = Si[im-k];
-			    cr = Sr[im+k];
-			    ci = Si[im+k];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
+                if (w_flag[mod+u+k]) {
+                  ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k];
+                bi = Si[im-k];
+                cr = Sr[im+k];
+                ci = Si[im+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
                     }
                 }
                 
@@ -765,177 +765,177 @@ void Asym_UpdatePhaseQ4(double *Sr, double *Si, double *wr, double *wi, int *w_f
                 tempr=0.;
                 tempi=0.;
                 mod = ((n-L)%Q)*Q*(L+1);
-		// contribution of center frame m
+        // contribution of center frame m
                 if(cframe){
                     if(update==1){
                         tempr+=Sr[m*Np+n]/Q;
                         tempi+=Si[m*Np+n]/Q;
                     }
-		    for(k=1;k<L+1;k++){
-		        if (w_flag[mod+k]) {
-			    ar = wr[mod+k];
-			    ai = wi[mod+k];
-			    br = Sr[m*Np+n-k];
-			    bi = Si[m*Np+n-k];
-			    cr = Sr[m*Np+n+k];
-			    ci = Si[m*Np+n+k];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
-		    }
+            for(k=1;k<L+1;k++){
+                if (w_flag[mod+k]) {
+                ar = wr[mod+k];
+                ai = wi[mod+k];
+                br = Sr[m*Np+n-k];
+                bi = Si[m*Np+n-k];
+                cr = Sr[m*Np+n+k];
+                ci = Si[m*Np+n+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
+            }
                 }
                 if((n-L)%2==1){
                     for(r=1;r<Q;r+=2){
-		        int u = r*(L+1);
-			int im = (m-r)*Np + n;
-			int ip = (m+r)*Np + n;
+                int u = r*(L+1);
+            int im = (m-r)*Np + n;
+            int ip = (m+r)*Np + n;
                         if(r<rframe){
-			    if (w_flag[mod+u]) {
-				ar = wr[mod+u];
-				ai = wi[mod+u];
-				br = Sr[im];
-				bi = Si[im];
-				cr = Sr[ip];
-				ci = Si[ip];
-				tempr+= ar*(br+cr)-ai*(bi-ci);
-				tempi+= ar*(bi+ci)+ai*(br-cr);
-			    }
+                if (w_flag[mod+u]) {
+                ar = wr[mod+u];
+                ai = wi[mod+u];
+                br = Sr[im];
+                bi = Si[im];
+                cr = Sr[ip];
+                ci = Si[ip];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+                }
                             for(k=1;k<L+1;k++){
-				if (w_flag[mod+u+k]) {
-				    ar = wr[mod+u+k];
-				    ai = wi[mod+u+k];
-				    br = Sr[im-k] - Sr[ip+k];
-				    bi = Si[im-k] - Si[ip+k];
-				    cr = Sr[ip-k] - Sr[im+k];
-				    ci = Si[ip-k] - Si[im+k];
-				    tempr+= ar*(br+cr)-ai*(bi-ci);
-				    tempi+= ar*(bi+ci)+ai*(br-cr);
-				}
+                if (w_flag[mod+u+k]) {
+                    ar = wr[mod+u+k];
+                    ai = wi[mod+u+k];
+                    br = Sr[im-k] - Sr[ip+k];
+                    bi = Si[im-k] - Si[ip+k];
+                    cr = Sr[ip-k] - Sr[im+k];
+                    ci = Si[ip-k] - Si[im+k];
+                    tempr+= ar*(br+cr)-ai*(bi-ci);
+                    tempi+= ar*(bi+ci)+ai*(br-cr);
+                }
                             }
                         }else{
-			    if (w_flag[mod+u]) {
-				ar = wr[mod+u];
-				ai = wi[mod+u];
-				br = Sr[im];
-				bi = Si[im];
-				tempr+= ar*(br)-ai*(bi);
-				tempi+= ar*(bi)+ai*(br);
-			    }
+                if (w_flag[mod+u]) {
+                ar = wr[mod+u];
+                ai = wi[mod+u];
+                br = Sr[im];
+                bi = Si[im];
+                tempr+= ar*(br)-ai*(bi);
+                tempi+= ar*(bi)+ai*(br);
+                }
                             for(k=1;k<L+1;k++){
-				if (w_flag[mod+u+k]) {
-				    ar = wr[mod+u+k];
-				    ai = wi[mod+u+k];
-				    br = Sr[im-k];
-				    bi = Si[im-k];
-				    cr = - Sr[im+k];
-				    ci = - Si[im+k];
-				    tempr+= ar*(br+cr)-ai*(bi-ci);
-				    tempi+= ar*(bi+ci)+ai*(br-cr);
-				}
+                if (w_flag[mod+u+k]) {
+                    ar = wr[mod+u+k];
+                    ai = wi[mod+u+k];
+                    br = Sr[im-k];
+                    bi = Si[im-k];
+                    cr = - Sr[im+k];
+                    ci = - Si[im+k];
+                    tempr+= ar*(br+cr)-ai*(bi-ci);
+                    tempi+= ar*(bi+ci)+ai*(br-cr);
+                }
                             }
                         }
                     }
                     r=2;
-		    int u = r*(L+1);
-		    int im = (m-r)*Np + n;
-		    int ip = (m+r)*Np + n;
+            int u = r*(L+1);
+            int im = (m-r)*Np + n;
+            int ip = (m+r)*Np + n;
                     if(r<rframe){
-			if (w_flag[mod+u]) {
-			    ar = wr[mod+u];
-			    ai = wi[mod+u];
-			    br = Sr[im];
-			    bi = Si[im];
-			    cr = Sr[ip];
-			    ci = Si[ip];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
+            if (w_flag[mod+u]) {
+                ar = wr[mod+u];
+                ai = wi[mod+u];
+                br = Sr[im];
+                bi = Si[im];
+                cr = Sr[ip];
+                ci = Si[ip];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
                         for(k=1;k<L+1;k++){
-			    if (w_flag[mod+u+k]) {
-				ar = wr[mod+u+k];
-				ai = wi[mod+u+k];
-				br = Sr[im-k] + Sr[ip+k];
-				bi = Si[im-k] + Si[ip+k];
-				cr = Sr[ip-k] + Sr[im+k];
-				ci = Si[ip-k] + Si[im+k];
-				tempr+= ar*(br+cr)-ai*(bi-ci);
-				tempi+= ar*(bi+ci)+ai*(br-cr);
-			    }
+                if (w_flag[mod+u+k]) {
+                ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k] + Sr[ip+k];
+                bi = Si[im-k] + Si[ip+k];
+                cr = Sr[ip-k] + Sr[im+k];
+                ci = Si[ip-k] + Si[im+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+                }
                         }
                     }else{
-			if (w_flag[mod+u]) {
-			    ar = wr[mod+u];
-			    ai = wi[mod+u];
-			    br = Sr[im];
-			    bi = Si[im];
-			    tempr+= ar*(br)-ai*(bi);
-			    tempi+= ar*(bi)+ai*(br);
-			}
+            if (w_flag[mod+u]) {
+                ar = wr[mod+u];
+                ai = wi[mod+u];
+                br = Sr[im];
+                bi = Si[im];
+                tempr+= ar*(br)-ai*(bi);
+                tempi+= ar*(bi)+ai*(br);
+            }
                         for(k=1;k<L+1;k++){
-			    if (w_flag[mod+u+k]) {
-				ar = wr[mod+u+k];
-				ai = wi[mod+u+k];
-				br = Sr[im-k];
-				bi = Si[im-k];
-				cr = Sr[im+k];
-				ci = Si[im+k];
-				tempr+= ar*(br+cr)-ai*(bi-ci);
-				tempi+= ar*(bi+ci)+ai*(br-cr);
-			    }
+                if (w_flag[mod+u+k]) {
+                ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k];
+                bi = Si[im-k];
+                cr = Sr[im+k];
+                ci = Si[im+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+                }
                         }
                     }
                     
                 }else{
                     for(r=1;r<rframe;r++){
-			int u = r*(L+1);
-			int im = (m-r)*Np + n;
-			int ip = (m+r)*Np + n;
-			if (w_flag[mod+u]) {
-			    ar = wr[mod+u];
-			    ai = wi[mod+u];
-			    br = Sr[im];
-			    bi = Si[im];
-			    cr = Sr[ip];
-			    ci = Si[ip];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
+            int u = r*(L+1);
+            int im = (m-r)*Np + n;
+            int ip = (m+r)*Np + n;
+            if (w_flag[mod+u]) {
+                ar = wr[mod+u];
+                ai = wi[mod+u];
+                br = Sr[im];
+                bi = Si[im];
+                cr = Sr[ip];
+                ci = Si[ip];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
                         for(k=1;k<L+1;k++){
-			    if (w_flag[mod+u+k]) {
-				ar = wr[mod+u+k];
-				ai = wi[mod+u+k];
-				br = Sr[im-k] + Sr[ip+k];
-				bi = Si[im-k] + Si[ip+k];
-				cr = Sr[ip-k] + Sr[im+k];
-				ci = Si[ip-k] + Si[im+k];
-				tempr+= ar*(br+cr)-ai*(bi-ci);
-				tempi+= ar*(bi+ci)+ai*(br-cr);
-			    }
+                if (w_flag[mod+u+k]) {
+                ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k] + Sr[ip+k];
+                bi = Si[im-k] + Si[ip+k];
+                cr = Sr[ip-k] + Sr[im+k];
+                ci = Si[ip-k] + Si[im+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+                }
                         }
                     }
                     
                     for(r=rframe;r<Q;r++){
-			int u = r*(L+1);
-			int im = (m-r)*Np + n;
-			if (w_flag[mod+u]) {
-			    ar = wr[mod+u];
-			    ai = wi[mod+u];
-			    br = Sr[im];
-			    bi = Si[im];
-			    tempr+= ar*(br)-ai*(bi);
-			    tempi+= ar*(bi)+ai*(br);
-			}
+            int u = r*(L+1);
+            int im = (m-r)*Np + n;
+            if (w_flag[mod+u]) {
+                ar = wr[mod+u];
+                ai = wi[mod+u];
+                br = Sr[im];
+                bi = Si[im];
+                tempr+= ar*(br)-ai*(bi);
+                tempi+= ar*(bi)+ai*(br);
+            }
                         for(k=1;k<L+1;k++){
-			    if (w_flag[mod+u+k]) {
-				ar = wr[mod+u+k];
-				ai = wi[mod+u+k];
-				br = Sr[im-k];
-				bi = Si[im-k];
-				cr = Sr[im+k];
-				ci = Si[im+k];
-				tempr+= ar*(br+cr)-ai*(bi-ci);
-				tempi+= ar*(bi+ci)+ai*(br-cr);
-			    }
+                if (w_flag[mod+u+k]) {
+                ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k];
+                bi = Si[im-k];
+                cr = Sr[im+k];
+                ci = Si[im+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+                }
                         }
                     }
                 }
@@ -997,93 +997,93 @@ void Asym_UpdatePhaseanyQ(double *Sr, double *Si, double *wr, double *wi, int *w
                         tempr+=Sr[m*Np+n]/Q;
                         tempi+=Si[m*Np+n]/Q;
                     }
-		    for(k=1;k<L+1;k++){
-		        if (w_flag[mod+k]) {
-			    ar = wr[mod+k];
-			    ai = wi[mod+k];
-			    br = Sr[m*Np+n-k];
-			    bi = Si[m*Np+n-k];
-			    cr = Sr[m*Np+n+k];
-			    ci = Si[m*Np+n+k];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
-		    }
+            for(k=1;k<L+1;k++){
+                if (w_flag[mod+k]) {
+                ar = wr[mod+k];
+                ai = wi[mod+k];
+                br = Sr[m*Np+n-k];
+                bi = Si[m*Np+n-k];
+                cr = Sr[m*Np+n+k];
+                ci = Si[m*Np+n+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
+            }
                 }
 
-		// contribution of frames m+/-r
-		for(r=1;r<rframe;r++){
-		    int u = r*(L+1);
-		    int im = (m-r)*Np + n;
-		    int ip = (m+r)*Np + n;
-		    // for frequency n
-		    if (w_flag[mod+u]) {
-			ar = wr[mod+u];
-			ai = wi[mod+u];
-			br = Sr[im];
-			bi = Si[im];
-			cr = Sr[ip];
-			ci = Si[ip];
-			tempr+= ar*(br+cr)-ai*(bi-ci);
-			tempi+= ar*(bi+ci)+ai*(br-cr);
-		    }
-		    // for frequencies n+/-k
-		    for(k=1;k<L+1;k++){
-		        if (w_flag[mod+u+k]) {
-			    ar = wr[mod+u+k];
-			    ai = wi[mod+u+k];
-			    br = Sr[im-k];
-			    bi = Si[im-k];
-			    cr = Sr[ip-k];
-			    ci = Si[ip-k];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
-		        if (w_flag[modneg+u+k]) {
-			    ar = wr[modneg+u+k];
-			    ai = wi[modneg+u+k];
-			    br = Sr[ip+k];
-			    bi = Si[ip+k];
-			    cr = Sr[im+k];
-			    ci = Si[im+k];
-			    tempr+= ar*(br+cr)-ai*(bi-ci);
-			    tempi+= ar*(bi+ci)+ai*(br-cr);
-			}
-		    }
-		}
+        // contribution of frames m+/-r
+        for(r=1;r<rframe;r++){
+            int u = r*(L+1);
+            int im = (m-r)*Np + n;
+            int ip = (m+r)*Np + n;
+            // for frequency n
+            if (w_flag[mod+u]) {
+            ar = wr[mod+u];
+            ai = wi[mod+u];
+            br = Sr[im];
+            bi = Si[im];
+            cr = Sr[ip];
+            ci = Si[ip];
+            tempr+= ar*(br+cr)-ai*(bi-ci);
+            tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
+            // for frequencies n+/-k
+            for(k=1;k<L+1;k++){
+                if (w_flag[mod+u+k]) {
+                ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k];
+                bi = Si[im-k];
+                cr = Sr[ip-k];
+                ci = Si[ip-k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
+                if (w_flag[modneg+u+k]) {
+                ar = wr[modneg+u+k];
+                ai = wi[modneg+u+k];
+                br = Sr[ip+k];
+                bi = Si[ip+k];
+                cr = Sr[im+k];
+                ci = Si[im+k];
+                tempr+= ar*(br+cr)-ai*(bi-ci);
+                tempi+= ar*(bi+ci)+ai*(br-cr);
+            }
+            }
+        }
                     
-		for(r=rframe;r<Q;r++){
-		    int u = r*(L+1);
-		    int im = (m-r)*Np + n;
-		    // for frequency n
-		    if (w_flag[mod+u]) {
-			ar = wr[mod+u];
-			ai = wi[mod+u];
-			br = Sr[im];
-			bi = Si[im];
-			tempr+= ar*(br)-ai*(bi);
-			tempi+= ar*(bi)+ai*(br);
-		    }
-		    // for frequencies n+/-k
-		    for(k=1;k<L+1;k++){
-		        if (w_flag[mod+u+k]) {
-			    ar = wr[mod+u+k];
-			    ai = wi[mod+u+k];
-			    br = Sr[im-k];
-			    bi = Si[im-k];
-			    tempr+= ar*(br)-ai*(bi);
-			    tempi+= ar*(bi)+ai*(br);
-			}
-		        if (w_flag[modneg+u+k]) {
-			    ar = wr[modneg+u+k];
-			    ai = wi[modneg+u+k];
-			    cr = Sr[im+k];
-			    ci = Si[im+k];
-			    tempr+= ar*(cr)+ai*(ci);
-			    tempi+= ar*(ci)-ai*(cr);
-			}
-		    }
-		}
+        for(r=rframe;r<Q;r++){
+            int u = r*(L+1);
+            int im = (m-r)*Np + n;
+            // for frequency n
+            if (w_flag[mod+u]) {
+            ar = wr[mod+u];
+            ai = wi[mod+u];
+            br = Sr[im];
+            bi = Si[im];
+            tempr+= ar*(br)-ai*(bi);
+            tempi+= ar*(bi)+ai*(br);
+            }
+            // for frequencies n+/-k
+            for(k=1;k<L+1;k++){
+                if (w_flag[mod+u+k]) {
+                ar = wr[mod+u+k];
+                ai = wi[mod+u+k];
+                br = Sr[im-k];
+                bi = Si[im-k];
+                tempr+= ar*(br)-ai*(bi);
+                tempi+= ar*(bi)+ai*(br);
+            }
+                if (w_flag[modneg+u+k]) {
+                ar = wr[modneg+u+k];
+                ai = wi[modneg+u+k];
+                cr = Sr[im+k];
+                ci = Si[im+k];
+                tempr+= ar*(cr)+ai*(ci);
+                tempi+= ar*(ci)-ai*(cr);
+            }
+            }
+        }
                 
                 
                 abstemp = sqrt(pow(tempr, 2.)+pow(tempi, 2.));
@@ -1136,7 +1136,7 @@ void TF_RTISI_LA(double *Sr, double *Si, double *wr, double *wi,
                 Asym_UpdatePhaseQ2(Sr+m*Np, Si+m*Np, wr_asym_full, wi_asym_full, w_flag_af, AmpSpec+m*Np, Nreal, 1, 1, L, threshold, update);
             } // end LOOP on iterations
         } 
-	else if (Q==4) {
+    else if (Q==4) {
             // Initial phase estimate for the newest uncommitted frame
             Asym_UpdatePhaseQ4(Sr+m*Np, Si+m*Np, wr_asym_init, wi_asym_init, w_flag_ai, AmpSpec+m*Np, Nreal, 1, 0, L, 0., update);
             for(int h=0;h<iter;h++){
@@ -1150,18 +1150,18 @@ void TF_RTISI_LA(double *Sr, double *Si, double *wr, double *wi,
             } // end LOOP on iterations
         }else {
             // Initial phase estimate for the newest uncommitted frame
-	    Asym_UpdatePhaseanyQ(Sr+m*Np, Si+m*Np, wr_asym_init, wi_asym_init, w_flag_ai, AmpSpec+m*Np, Nreal, 1, 0, L, Q, 0., update);
+        Asym_UpdatePhaseanyQ(Sr+m*Np, Si+m*Np, wr_asym_init, wi_asym_init, w_flag_ai, AmpSpec+m*Np, Nreal, 1, 0, L, Q, 0., update);
             for(int h=0;h<iter;h++){
                 threshold = ThresholdArray[h];
                 // Deal with the other frames using the usual window
                 if(LA>0){
-		  Asym_UpdatePhaseanyQ(Sr+lframe*Np, Si+lframe*Np, wr, wi, w_flag, AmpSpec+lframe*Np, Nreal, nframe, nframe+1, L, Q, threshold, update);
+          Asym_UpdatePhaseanyQ(Sr+lframe*Np, Si+lframe*Np, wr, wi, w_flag, AmpSpec+lframe*Np, Nreal, nframe, nframe+1, L, Q, threshold, update);
                 }
                 // Deal with the newest frame first with the asymmetric window
                 Asym_UpdatePhaseanyQ(Sr+m*Np, Si+m*Np, wr_asym_full, wi_asym_full, w_flag_af, AmpSpec+m*Np, Nreal, 1, 1, L, Q, threshold, update);
             } // end LOOP on iterations
 
-	}
+    }
     } // end LOOP on frames
 }
 

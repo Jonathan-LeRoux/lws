@@ -32,7 +32,8 @@
 %   Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-addpath('./lib')
+addpath('./c')
+addpath('./matlab')
 
 %% Pipeline
 do_no_future_lws = 1;
