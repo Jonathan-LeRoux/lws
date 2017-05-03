@@ -1,5 +1,5 @@
-/* LWS.C Construct consistent phase using Local Weighted Sums (LWS)
- * Syntax:    s_out = lws(s_in, weights, thresholds)
+/* ONLINE_LWS.CPP Construct consistent phase using online LWS updates
+ * Syntax:    s_out = online_lws(s_in, weights, thresholds)
  *
  * Copyright (C) 2008-2017 Jonathan Le Roux
  * Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 
@@ -17,14 +17,18 @@ mxGetNumberOfDimensions(P) == 2 && !mxIsSparse(P) && mxIsDouble(P) && \
 #define IS_DOUBLE_SCALAR(P) (mxIsDouble(P) && !mxIsSparse(P) && mxGetNumberOfElements(P) == 1)
 
 
+
 void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         int nrhs, const mxArray *prhs[]) /* Input variables */ {
     
     /* Macros for the ouput and input arguments */
     #define S_IN prhs[0]
     #define WEIGHTS prhs[1]
-    #define THRESHOLDS prhs[2]
-    if (nrhs < 3){
+    #define WEIGHTS_ASYM_INIT prhs[2]
+    #define WEIGHTS_ASYM_FULL prhs[3]
+    #define THRESHOLDS prhs[4]
+    #define LA_IN prhs[5]
+    if (nrhs < 6){
         mexPrintf("lws: not enought inputs\n");
         return;
     }      
@@ -47,6 +51,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
     }
     int L = Wdims[0]-1;
     int Q = Wdims[1];
+
     #ifdef DEBUG
     mexPrintf("lws: weights is size %d x %d x %d\n", Wdims[0],Wdims[1],Wdims[2]);
     #endif
@@ -55,24 +60,27 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         mexPrintf("lws: please provide a 1-D list of phase update thresholds.\n");
         return;
     }
-    int iterations = mxGetNumberOfElements(THRESHOLDS);
+    int iterations = (int) mxGetNumberOfElements(THRESHOLDS);
     #ifdef DEBUG
     mexPrintf("lws: will perform %d iterations with the specified thresholds.\n", iterations);
     #endif
     
-    // Parse opts struct array
-    // #rtisi_iter, rtisi_la
-    // asymmetric window, no future init?
+    if (! IS_DOUBLE_SCALAR(LA_IN)){
+        mexPrintf("Number of look-ahead frames is not a real scalar.\n");
+        return;
+    }
+    int LA = (int) mxGetScalar(LA_IN);
     
     
     if (nlhs > 0) {
         mxArray  *s_out;
         int T ,N, Nreal;
         double *pSr, *pSi, *pWr, *pWi, *pOr, *pOi, *pTr;
+        double *pWr_ai, *pWi_ai, *pWr_af, *pWi_af;
         double threshold;
         
-        Nreal = mxGetM(S_IN);
-        T = mxGetN(S_IN);
+        Nreal = (int) mxGetM(S_IN);
+        T = (int) mxGetN(S_IN);
         
         if (Nreal%2 == 0){
             mexPrintf("Please only include non-negative frequencies in the input spectrogram.\n");
@@ -85,7 +93,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         if (mxIsComplex(S_IN)) {
             pSi = mxGetPi(S_IN);
         }else {
-            pSi = malloc(sizeof(double)*Nreal*T);
+            pSi = (double *) malloc(sizeof(double)*Nreal*T);
             for (int i=0; i<Nreal*T; i++) {
                 pSi[i] = 0.;
             }
@@ -93,32 +101,47 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         
         pWr = mxGetPr(WEIGHTS);
         pWi = mxGetPi(WEIGHTS);
+        pWr_ai = mxGetPr(WEIGHTS_ASYM_INIT);
+        pWi_ai = mxGetPi(WEIGHTS_ASYM_INIT);
+        pWr_af = mxGetPr(WEIGHTS_ASYM_FULL);
+        pWi_af = mxGetPi(WEIGHTS_ASYM_FULL);
         
         pTr = mxGetPr(THRESHOLDS);
         
-        int *pWflag;
+        int *pWflag, *pWflag_ai, *pWflag_af;
         // Get a boolean mask specifying which weights to use or skip
         double w_threshold = 1.0e-12;
-        pWflag = malloc(sizeof(int)*mxGetNumberOfElements(WEIGHTS));
+        pWflag    = (int *) malloc(sizeof(int)*mxGetNumberOfElements(WEIGHTS));
+        pWflag_ai = (int *) malloc(sizeof(int)*mxGetNumberOfElements(WEIGHTS));
+        pWflag_af = (int *) malloc(sizeof(int)*mxGetNumberOfElements(WEIGHTS));
         for(int n=0; n<mxGetNumberOfElements(WEIGHTS); n++){
             if (sqrt(pow(pWr[n], 2.)+pow(pWi[n], 2.)) > w_threshold){
                 pWflag[n] = 1;
             } else {
                 pWflag[n] = 0;
             }
+            if (sqrt(pow(pWr_ai[n], 2.)+pow(pWi_ai[n], 2.)) > w_threshold){
+                pWflag_ai[n] = 1;
+            } else {
+                pWflag_ai[n] = 0;
+            }
+            if (sqrt(pow(pWr_af[n], 2.)+pow(pWi_af[n], 2.)) > w_threshold){
+                pWflag_af[n] = 1;
+            } else {
+                pWflag_af[n] = 0;
+            }
         }
 
-        
         // Extend the spectrogram to avoid having to deal with values outside the boundaries
         int Np=Nreal+2*L;
         double *ExtSr, *ExtSi;
-        ExtSr = malloc(sizeof(double)*(T+2*(Q-1))*Np);
-        ExtSi = malloc(sizeof(double)*(T+2*(Q-1))*Np);
+        ExtSr = (double *) malloc(sizeof(double)*(T+2*(Q-1))*Np);
+        ExtSi = (double *) malloc(sizeof(double)*(T+2*(Q-1))*Np);
         ExtendSpec(ExtSr, ExtSi, pSr, pSi, Nreal, T, L, Q);
         
         // Store the amplitude spectrogram
         double *AmpSpec;
-        AmpSpec = malloc(sizeof(double)*(T+2*(Q-1))*Np);
+        AmpSpec = (double *) malloc(sizeof(double)*(T+2*(Q-1))*Np);
         ComputeAmpSpec(ExtSr,ExtSi,AmpSpec,(T+2*(Q-1))*Np);
         double mean_amp = 0;
         for(int m=Q-1;m<(T+Q-1);m++){
@@ -128,19 +151,17 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         }
         mean_amp /= (T * Nreal);
                 
-        // Perform the phase updates
+        double *thresholds;
+        thresholds = (double *) malloc(sizeof(double)*iterations);
         for (int j=0; j<iterations; j++){
-            threshold = pTr[j] * mean_amp;
-            //mexPrintf("%d: %f\n",j,threshold);
-            if (Q==2){
-                LWSQ2(ExtSr, ExtSi, pWr, pWi, pWflag, AmpSpec, Nreal, T, L, threshold);
-            }
-            else if (Q==4){
-                LWSQ4(ExtSr, ExtSi, pWr, pWi, pWflag, AmpSpec, Nreal, T, L, threshold);
-            }else {
-                LWSanyQ(ExtSr, ExtSi, pWr, pWi, pWflag, AmpSpec, Nreal, T, L, Q, threshold);   
-            }
+            thresholds[j] = pTr[j] * mean_amp;
         }
+        
+        int update_type = 2;
+        // Perform the phase updates
+        TF_RTISI_LA(ExtSr, ExtSi, pWr, pWi, pWr_ai, pWi_ai, pWr_af, pWi_af, 
+                pWflag, pWflag_ai, pWflag_af,
+                AmpSpec, iterations, LA, Nreal, T, L, Q, thresholds, update_type);
         
         // Copy back the non-redundant part of the spectrogram into the output
         s_out = mxCreateDoubleMatrix(0, 0, mxCOMPLEX);

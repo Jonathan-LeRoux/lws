@@ -56,7 +56,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         mexPrintf("nofuture_lws: please provide a 1-D list of phase update thresholds.\n");
         return;
     }
-    int iterations = mxGetNumberOfElements(THRESHOLDS);
+    int iterations = (int) mxGetNumberOfElements(THRESHOLDS);
     #ifdef DEBUG
     mexPrintf("nofuture_lws: will perform %d iterations with the specified thresholds.\n", iterations);
     #endif
@@ -72,8 +72,8 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         double *pSr, *pSi, *pWr, *pWi, *pOr, *pOi, *pTr;
         double threshold;
         
-        Nreal = mxGetM(S_IN);
-        T = mxGetN(S_IN);
+        Nreal = (int) mxGetM(S_IN);
+        T = (int) mxGetN(S_IN);
         
         if (Nreal%2 == 0){
             mexPrintf("Please only include non-negative frequencies in the input spectrogram.\n");
@@ -86,7 +86,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         if (mxIsComplex(S_IN)) {
             pSi = mxGetPi(S_IN);
         }else {
-            pSi = malloc(sizeof(double)*Nreal*T);
+            pSi = (double *) malloc(sizeof(double)*Nreal*T);
             for (int i=0; i<Nreal*T; i++) {
                 pSi[i] = 0.;
             }
@@ -100,7 +100,7 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         int *pWflag;
         // Get a boolean mask specifying which weights to use or skip
         double w_threshold = 1.0e-12;
-        pWflag = malloc(sizeof(int)*mxGetNumberOfElements(WEIGHTS));
+        pWflag = (int *) malloc(sizeof(int)*mxGetNumberOfElements(WEIGHTS));
         for(int n=0; n<mxGetNumberOfElements(WEIGHTS); n++){
             if (sqrt(pow(pWr[n], 2.)+pow(pWi[n], 2.)) > w_threshold){
                 pWflag[n] = 1;
@@ -112,13 +112,13 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         // Extend the spectrogram to avoid having to deal with values outside the boundaries
         int Np=Nreal+2*L;
         double *ExtSr, *ExtSi;
-        ExtSr = malloc(sizeof(double)*(T+2*(Q-1))*Np);
-        ExtSi = malloc(sizeof(double)*(T+2*(Q-1))*Np);
+        ExtSr = (double *) malloc(sizeof(double)*(T+2*(Q-1))*Np);
+        ExtSi = (double *) malloc(sizeof(double)*(T+2*(Q-1))*Np);
         ExtendSpec(ExtSr, ExtSi, pSr, pSi, Nreal, T, L, Q);
         
         // Store the amplitude spectrogram
         double *AmpSpec;
-        AmpSpec = malloc(sizeof(double)*(T+2*(Q-1))*Np);
+        AmpSpec = (double *) malloc(sizeof(double)*(T+2*(Q-1))*Np);
         ComputeAmpSpec(ExtSr,ExtSi,AmpSpec,(T+2*(Q-1))*Np);
         double mean_amp = 0;
         for(int m=Q-1;m<(T+Q-1);m++){

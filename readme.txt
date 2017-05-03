@@ -3,19 +3,19 @@ Author: Jonathan Le Roux -- 2008-2017
 
 The LWS software includes the following files:
 run_lws.m                          # example script (Matlab)
-c/lws_functions.c                  # core functions
+c/lws_functions.cpp                # core functions
 c/lws_functions.h                  # header file
 matlab/build_asymmetric_windows.m  # code to build assymetric windows as in RTISI-LA (Matlab) 
 matlab/create_weights.m            # code to create complex weights used in LWS (Matlab)
 matlab/istft.m                     # inverse STFT code (matlab)
 matlab/stft.m                      # STFT code (matlab)
-matlab/lws.c                       # mex file for LWS
-matlab/nofuture_lws.c              # mex file for "no future" LWS initialization
-matlab/online_lws.c                # mex file for online LWS
+matlab/lws.cpp                     # mex file for LWS
+matlab/nofuture_lws.cpp            # mex file for "no future" LWS initialization
+matlab/online_lws.cpp              # mex file for online LWS
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Copyright (C) 2008-2017 Jonathan Le Roux
-%   Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 
+%   Copyright (C) 2008-2017 Jonathan Le Roux                              %
+%   Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)              %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -44,16 +44,17 @@ Proc. of ASJ Autumn Meeting, 3-10-3, Sep. 2010.
   number =	 {3-10-3},
   month =	 mar
 }
----------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 Installation:
 
 1) Compiling mex files
 
-mex -O CFLAGS="\$CFLAGS -std=c99" -output lws c/lws_functions.c matlab/lws.c
-mex -O CFLAGS="\$CFLAGS -std=c99" -output online_lws c/lws_functions.c matlab/online_lws.c
-mex -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws c/lws_functions.c matlab/nofuture_lws.c
+mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output lws c/lws_functions.cpp matlab/lws.cpp
+mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws c/lws_functions.cpp matlab/online_lws.cpp
+mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws c/lws_functions.cpp matlab/nofuture_lws.cpp
 
 2) Usage
 
