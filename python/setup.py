@@ -13,5 +13,5 @@ setup(
     ext_modules = [Extension("lws",
                              sources=["c/lws_functions.cpp","lws.pyx"],
                              include_dirs=["c/",np.get_include()],
-                             language="c++"])
+                             language="c++")]
 )
