@@ -1,4 +1,4 @@
-/* LWS_FUNCTIONS.C Core functions for constructing consistent phase 
+/* LWS_FUNCTIONS.CPP Core functions for constructing consistent phase 
  *                 using Local Weighted Sums (LWS)
  * 
  * Copyright (C) 2008-2017 Jonathan Le Roux
@@ -65,7 +65,7 @@ void ComputeAmpSpec(double *Sr, double *Si, double * AmpSpec, int size) {
 }
 
 /***************************************/
-/* Functions used in lws.c             */
+/* Functions used in lws.cpp           */
 /***************************************/
 
 // Using symmetries to reduce the number of calculations when Q=2
@@ -373,7 +373,7 @@ void LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double
 }
 
 /***************************************/
-/* Functions used by nofuture_lws.c    */
+/* Functions used by nofuture_lws.cpp  */
 /***************************************/
 
 void NoFuture_LWSQ2(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, double threshold) {
@@ -597,7 +597,7 @@ void NoFuture_LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_fla
 
 
 /***************************************/
-/* Functions used by online_lws.c    */
+/* Functions used by online_lws.cpp    */
 /***************************************/
 
 // M gives the number of frames to update, and M0 the number of frames on the right 

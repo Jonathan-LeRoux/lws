@@ -60,10 +60,6 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
     mexPrintf("lws: will perform %d iterations with the specified thresholds.\n", iterations);
     #endif
     
-    // Parse opts struct array
-    // #rtisi_iter, rtisi_la
-    // asymmetric window, no future init?
-    
     
     if (nlhs > 0) {
         mxArray  *s_out;
