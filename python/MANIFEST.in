@@ -1,2 +1,3 @@
-recursive-include c/ *
+recursive-include lwslib/ *
+include *.pxd
 include *.pyx

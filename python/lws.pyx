@@ -1,16 +1,7 @@
+cimport lws_functions
 cimport numpy as np
 import numpy as np
 
-cdef extern from "lwslib/lws_functions.h":
-    void LWSQ2(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, double threshold)
-    void LWSQ4(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, double threshold)
-    void LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, int Q, double threshold)
-    void NoFuture_LWSQ2(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, double threshold)
-    void NoFuture_LWSQ4(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, double threshold)
-    void NoFuture_LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, int Q, double threshold)
-    void TF_RTISI_LA(double *Sr, double *Si, double *wr, double *wi, 
-        double *wr_asym_init, double *wi_asym_init, double *wr_asym_full, double *wi_asym_full, int *w_flag, int *w_flag_ai, int *w_flag_af,  
-        double *AmpSpec, int iter, int LA, int Nreal, int M, int L, int Q, double *ThresholdArray, int update)
 
 def extspec(S, L, Q):
     Nreal,T = S.shape
@@ -62,11 +53,11 @@ def lws(np.ndarray[np.complex128_t, ndim=2] S,
     for i in range(iterations):
         threshold = thresholds[i] * mean_amp
         if Q == 2:
-            LWSQ2(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
+            lws_functions.LWSQ2(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
         elif Q == 4:
-            LWSQ4(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
+            lws_functions.LWSQ4(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
         else:
-            LWSanyQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L,Q, threshold)
+            lws_functions.LWSanyQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L,Q, threshold)
     
     # Extract the non-redundant part of the spectrogram
     S_out =  ExtSr[L:(Nreal+L),(Q-1):(Q-1+T)] + 1j * ExtSi[L:(Nreal+L),(Q-1):(Q-1+T)]
@@ -110,11 +101,11 @@ def nofuture_lws(np.ndarray[np.complex128_t, ndim=2] S,
     for i in range(iterations):
         threshold = thresholds[i] * mean_amp
         if Q == 2:
-            NoFuture_LWSQ2(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
+            lws_functions.NoFuture_LWSQ2(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
         elif Q == 4:
-            NoFuture_LWSQ4(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
+            lws_functions.NoFuture_LWSQ4(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
         else:
-            NoFuture_LWSanyQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L,Q, threshold)
+            lws_functions.NoFuture_LWSanyQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L,Q, threshold)
     
     # Extract the non-redundant part of the spectrogram
     S_out =  ExtSr[L:(Nreal+L),(Q-1):(Q-1+T)] + 1j * ExtSi[L:(Nreal+L),(Q-1):(Q-1+T)]
@@ -168,7 +159,7 @@ def online_lws(np.ndarray[np.complex128_t, ndim=2] S,
 
     update_type = 2
     # Perform the phase updates
-    TF_RTISI_LA(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0],
+    lws_functions.TF_RTISI_LA(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0],
                 &Wr_ai[0,0,0], &Wi_ai[0,0,0], &Wr_af[0,0,0], &Wi_af[0,0,0],
                 &Wflag[0,0,0], &Wflag_ai[0,0,0], &Wflag_af[0,0,0],
                 &AmpSpec[0,0],

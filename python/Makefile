@@ -6,7 +6,7 @@ FILES=lwslib lws.bycython.cpp setup.py MANIFEST.in README.rst
 lwslib: ../lwslib
 	cp -R ../lwslib lwslib
 
-lws.bycython.cpp: lws.pyx
+lws.bycython.cpp: lws.pyx lws_functions.pxd
 	cython --cplus lws.pyx -o lws.bycython.cpp
 #######################################
 
@@ -17,6 +17,7 @@ build: ${FILES}
 
 sdist: ${FILES}
 	python setup.py sdist
+	touch dist
 
 publish: clean sdist
 	twine upload dist/*
