@@ -3,6 +3,26 @@ cimport numpy as np
 import numpy as np
 
 
+def synthwin(awin,fshift,swin=None):
+    # returns the normalized synthesis window for perfect reconstruction
+    framesize = len(awin)
+    Q = np.int(np.ceil(np.float(framesize) / np.float(fshift)))
+    if swin is None:
+        swin = awin
+    twin = awin * swin                              
+    tmp_framesize = Q*fshift
+    
+    w=np.hstack([twin,np.zeros((tmp_framesize-framesize,))])
+    w=np.sum(np.reshape(w,(Q,fshift)),axis=0)
+    w=np.tile(w,(1,Q))[0,:framesize]
+    
+    if min(w) <= 0:
+        raise ValueError('The normalizer is not strictly positive')
+
+    swin = swin / w
+
+    return swin
+
 def extspec(S, L, Q):
     Nreal,T = S.shape
     Np=Nreal+2*L
@@ -15,10 +35,95 @@ def extspec(S, L, Q):
     ExtS[:,(Q-1+T):] = np.atleast_2d(ExtS[:,Q-2+T]).T
     return ExtS
     
+def create_weights(awin,swin,fshift,L):
+    #  Compute the (L+1)xQxQ matrix of complex weights used by the LWS code
+    Q = len(awin)/fshift
+    # PLACEHOLDER:
+    W = np.zeros((L+1,Q,Q),dtype = np.complex128)
+    return W
 
-def lws(np.ndarray[np.complex128_t, ndim=2] S, 
-        np.ndarray[np.complex128_t, ndim=3] W, 
-        np.ndarray[np.double_t, ndim=1] thresholds):
+
+def build_asymmetric_windows(awin_swin,fshift):
+    # This computes the mirrored envelope used in Zhu et al.'s RTISI-LA.
+    # Note that the input awin_swin should be the *product* of the analysis and
+    # synthesis windows.
+    Q = len(awin_swin)/fshift
+    win_ai = awin_swin
+    win_af = awin_swin
+    return win_ai, win_af
+
+
+def get_thresholds(iterations,alpha,beta,gamma):
+    thresholds = alpha * np.exp(- beta * np.arange(iterations)**gamma)
+    return thresholds
+
+
+class lws(object):
+    def __init__(self, awin, fshift, L = 2, swin = None, look_ahead = 3,
+                 nofuture_iterations = 1, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
+                 online_iterations = 10, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
+                 batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1
+                  ):
+        if len(awin) % fshift != 0:
+            raise ValueError('LWS requires that the window shift divides the window length.')
+
+        self.awin = awin
+        self.swin = synthwin(awin,fshift,swin=swin)
+        self.fshift = fshift
+        self.fsize = len(awin)
+        self.L = L
+        self.Q = self.fsize/self.fshift
+        self.W = create_weights(self.awin,self.swin,self.fshift,self.L)
+        self.W_ai, self.W_af = build_asymmetric_windows(self.awin * self.swin, self.fshift)
+        self.batch_iterations = batch_iterations
+        self.batch_alpha = batch_alpha
+        self.batch_beta  = batch_beta
+        self.batch_gamma = batch_gamma
+        self.online_iterations = online_iterations
+        self.online_alpha = online_alpha
+        self.online_beta  = online_beta
+        self.online_gamma = online_gamma
+        self.look_ahead = look_ahead
+        self.nofuture_iterations = nofuture_iterations
+        self.nofuture_alpha = nofuture_alpha
+        self.nofuture_beta  = nofuture_beta
+        self.nofuture_gamma = nofuture_gamma
+
+
+    def run_batch_lws(self,S,iterations=None,thresholds=None):
+        if iterations is None:
+            iterations = self.batch_iterations
+        if thresholds is None:
+            thresholds = get_thresholds(iterations,self.batch_alpha,self.batch_beta,self.batch_gamma)
+        return batch_lws(S,self.W,thresholds)
+        
+
+    def run_online_lws(self,S,iterations=None,thresholds=None):
+        if iterations is None:
+            iterations = self.online_iterations
+        if thresholds is None:
+            thresholds = get_thresholds(iterations,self.online_alpha,self.online_beta,self.online_gamma)
+        return online_lws(S,self.W,self.W_ai,self.W_af,thresholds,self.look_ahead)
+
+
+    def run_nofuture_lws(self,S,iterations=None,thresholds=None):
+        if iterations is None:
+            iterations = self.nofuture_iterations
+        if thresholds is None:
+            thresholds = get_thresholds(iterations,self.nofuture_alpha,self.nofuture_beta,self.nofuture_gamma)
+        return nofuture_lws(S,self.W_ai,thresholds)
+
+
+    def run_lws(self,S):
+        S0 = self.run_nofuture_lws(S)
+        S1 = self.run_online_lws(S0)
+        S2 = self.run_batch_lws(S1)
+        return S2
+
+
+def batch_lws(np.ndarray[np.complex128_t, ndim=2] S, 
+              np.ndarray[np.complex128_t, ndim=3] W, 
+              np.ndarray[np.double_t, ndim=1] thresholds):
         
     S = np.ascontiguousarray(S)
     W = np.ascontiguousarray(W)
