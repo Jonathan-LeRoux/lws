@@ -20,36 +20,35 @@ def lws(np.ndarray[np.complex128_t, ndim=2] S,
         np.ndarray[np.complex128_t, ndim=3] W, 
         np.ndarray[np.double_t, ndim=1] thresholds):
         
-        
-    S          = np.ascontiguousarray(S)
-    W          = np.ascontiguousarray(W)
-    #thresholds = np.ascontiguousarray(thresholds)
+    S = np.ascontiguousarray(S)
+    W = np.ascontiguousarray(W)
     
-    L = W.shape[0] - 1
-    Q = W.shape[1]
-    iterations = len(thresholds)
-    Nreal = S.shape[0]
-    T = S.shape[1]
+    cdef int L = W.shape[0] - 1
+    cdef int Q = W.shape[1]
+    cdef int iterations = len(thresholds)
+    cdef int Nreal = S.shape[0]
+    cdef int T = S.shape[1]
     if Nreal % 2 == 0:
         raise ValueError('Please only include non-negative frequencies in the input spectrogram.')
-    N = 2*(Nreal-1)
+    cdef int N = 2*(Nreal-1)
     
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wr = np.ascontiguousarray(W.real)
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wi = np.ascontiguousarray(W.imag)
     
     # Get a boolean mask specifying which weights to use or skip
-    w_threshold = 1.0e-12
+    cdef double w_threshold = 1.0e-12
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag = np.ascontiguousarray(np.abs(W) > w_threshold, dtype=np.dtype("i"))
     
     # Extend the spectrogram to avoid having to deal with values outside the boundaries
-    ExtS = extspec(S, L , Q)
+    cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtS  = extspec(S, L , Q)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSr = np.ascontiguousarray(ExtS.real)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSi = np.ascontiguousarray(ExtS.imag)
     # Store the amplitude spectrogram
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] AmpSpec = np.ascontiguousarray(np.abs(ExtS))
-    mean_amp = np.mean(np.abs(S))
+    cdef double mean_amp = np.mean(np.abs(S))
     
     # Perform the phase updates
+    cdef double threshold
     for i in range(iterations):
         threshold = thresholds[i] * mean_amp
         if Q == 2:
@@ -68,36 +67,35 @@ def nofuture_lws(np.ndarray[np.complex128_t, ndim=2] S,
         np.ndarray[np.complex128_t, ndim=3] W, 
         np.ndarray[np.double_t, ndim=1] thresholds):
         
-        
-    S          = np.ascontiguousarray(S)
-    W          = np.ascontiguousarray(W)
-    #thresholds = np.ascontiguousarray(thresholds)
+    S = np.ascontiguousarray(S)
+    W = np.ascontiguousarray(W)
     
-    L = W.shape[0] - 1
-    Q = W.shape[1]
-    iterations = len(thresholds)
-    Nreal = S.shape[0]
-    T = S.shape[1]
+    cdef int L = W.shape[0] - 1
+    cdef int Q = W.shape[1]
+    cdef int iterations = len(thresholds)
+    cdef int Nreal = S.shape[0]
+    cdef int T = S.shape[1]
     if Nreal % 2 == 0:
         raise ValueError('Please only include non-negative frequencies in the input spectrogram.')
-    N = 2*(Nreal-1)
-    
+    cdef int N = 2*(Nreal-1)
+        
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wr = np.ascontiguousarray(W.real)
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wi = np.ascontiguousarray(W.imag)
     
     # Get a boolean mask specifying which weights to use or skip
-    w_threshold = 1.0e-12
+    cdef double w_threshold = 1.0e-12
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag = np.ascontiguousarray(np.abs(W) > w_threshold, dtype=np.dtype("i"))
     
     # Extend the spectrogram to avoid having to deal with values outside the boundaries
-    ExtS = extspec(S, L , Q)
+    cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtS  = extspec(S, L , Q)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSr = np.ascontiguousarray(ExtS.real)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSi = np.ascontiguousarray(ExtS.imag)
     # Store the amplitude spectrogram
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] AmpSpec = np.ascontiguousarray(np.abs(ExtS))
-    mean_amp = np.mean(np.abs(S))
+    cdef double mean_amp = np.mean(np.abs(S))
     
     # Perform the phase updates
+    cdef double threshold
     for i in range(iterations):
         threshold = thresholds[i] * mean_amp
         if Q == 2:
@@ -126,14 +124,14 @@ def online_lws(np.ndarray[np.complex128_t, ndim=2] S,
     W_ai       = np.ascontiguousarray(W_asym_init)
     W_af       = np.ascontiguousarray(W_asym_full)
     
-    L = W.shape[0] - 1
-    Q = W.shape[1]
-    iterations = len(thresholds)
-    Nreal = S.shape[0]
-    T = S.shape[1]
+    cdef int L = W.shape[0] - 1
+    cdef int Q = W.shape[1]
+    cdef int iterations = len(thresholds)
+    cdef int Nreal = S.shape[0]
+    cdef int T = S.shape[1]
     if Nreal % 2 == 0:
         raise ValueError('Please only include non-negative frequencies in the input spectrogram.')
-    N = 2*(Nreal-1)
+    cdef int N = 2*(Nreal-1)
     
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wr = np.ascontiguousarray(W.real)
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wi = np.ascontiguousarray(W.imag)
@@ -143,21 +141,21 @@ def online_lws(np.ndarray[np.complex128_t, ndim=2] S,
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wi_af = np.ascontiguousarray(W_af.imag)
     
     # Get a boolean mask specifying which weights to use or skip
-    w_threshold = 1.0e-12
+    cdef double w_threshold = 1.0e-12
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag = np.ascontiguousarray(np.abs(W) > w_threshold, dtype=np.dtype("i"))
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag_ai = np.ascontiguousarray(np.abs(W_ai) > w_threshold, dtype=np.dtype("i"))
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag_af = np.ascontiguousarray(np.abs(W_af) > w_threshold, dtype=np.dtype("i"))
     
     # Extend the spectrogram to avoid having to deal with values outside the boundaries
-    ExtS = extspec(S, L , Q)
+    cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtS  = extspec(S, L , Q)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSr = np.ascontiguousarray(ExtS.real)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSi = np.ascontiguousarray(ExtS.imag)
     # Store the amplitude spectrogram
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] AmpSpec = np.ascontiguousarray(np.abs(ExtS))
-    mean_amp = np.mean(np.abs(S))
+    cdef double mean_amp = np.mean(np.abs(S))
     thresholds = np.ascontiguousarray(thresholds * mean_amp)
 
-    update_type = 2
+    cdef int update_type = 2
     # Perform the phase updates
     lwslib.TF_RTISI_LA(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0],
                 &Wr_ai[0,0,0], &Wi_ai[0,0,0], &Wr_af[0,0,0], &Wi_af[0,0,0],
