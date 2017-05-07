@@ -3,8 +3,8 @@ Author: Jonathan Le Roux -- 2008-2017
 
 The LWS software includes the following files:
 run_lws.m                          # example script (Matlab)
-c/lws_functions.cpp                # core functions
-c/lws_functions.h                  # header file
+lwslib/lwslib.cpp                  # core functions
+lwslib/lwslib.  h                  # header file
 matlab/build_asymmetric_windows.m  # code to build assymetric windows as in RTISI-LA (Matlab) 
 matlab/create_weights.m            # code to create complex weights used in LWS (Matlab)
 matlab/istft.m                     # inverse STFT code (matlab)
@@ -55,9 +55,9 @@ Remark: the .cpp files are actually C code with some C99 style comments, but the
 ## Matlab 
 1) Compiling mex files
 
-    mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output lws c/lws_functions.cpp matlab/lws.cpp
-    mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws c/lws_functions.cpp matlab/online_lws.cpp
-    mex -I"c/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws c/lws_functions.cpp matlab/nofuture_lws.cpp
+    mex -I"lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output lws lwslib/lwslib.cpp matlab/lws.cpp
+    mex -I"lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws lwslib/lwslib.cpp matlab/online_lws.cpp
+    mex -I"lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws lwslib/lwslib.cpp matlab/nofuture_lws.cpp
 
 2) Usage
 

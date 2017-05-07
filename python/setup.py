@@ -38,7 +38,7 @@ setup(
     keywords = "phase reconstruction stft",
     # Build instructions
     ext_modules = [Extension("lws",
-                             sources=["lws.bycython.cpp","lwslib/lws_functions.cpp"],
+                             sources=["lws.bycython.cpp","lwslib/lwslib.cpp"],
                              include_dirs=["lwslib/",np.get_include()],
                              language="c++",
                              extra_compile_args=["-O3"])],

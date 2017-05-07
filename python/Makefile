@@ -6,7 +6,7 @@ FILES=lwslib lws.bycython.cpp setup.py MANIFEST.in README.rst
 lwslib: ../lwslib
 	cp -R ../lwslib lwslib
 
-lws.bycython.cpp: lws.pyx lws_functions.pxd
+lws.bycython.cpp: lws.pyx lwslib.pxd
 	cython --cplus lws.pyx -o lws.bycython.cpp
 #######################################
 

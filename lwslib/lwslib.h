@@ -1,5 +1,5 @@
-#ifndef LWS_FUNCTIONS_H_INCLUDED
-#define LWS_FUNCTIONS_H_INCLUDED
+#ifndef LWSLIB_H_INCLUDED
+#define LWSLIB_H_INCLUDED
 
 #include <math.h>
 
@@ -24,4 +24,4 @@ void TF_RTISI_LA(double *Sr, double *Si, double *wr, double *wi,
 
 
 
-#endif /* LWS_FUNCTIONS_H_INCLUDED */
+#endif /* LWSLIB_H_INCLUDED */

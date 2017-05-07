@@ -6,7 +6,7 @@
  */
 
 #include "mex.h" /* Always include this */
-#include "lws_functions.h"
+#include "lwslib.h"
 #include "matrix.h"
 
 #define IS_REAL_1D_FULL_DOUBLE(P) (!mxIsComplex(P) && \

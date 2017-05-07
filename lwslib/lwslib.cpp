@@ -1,11 +1,11 @@
-/* LWS_FUNCTIONS.CPP Core functions for constructing consistent phase 
+/* LWSLIB.CPP Core functions for constructing consistent phase 
  *                 using Local Weighted Sums (LWS)
  * 
  * Copyright (C) 2008-2017 Jonathan Le Roux
  * Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 
  */
 
-#include "lws_functions.h" 
+#include "lwslib.h" 
 
 /***************************************/
 /*  Functions used by multiple files   */
