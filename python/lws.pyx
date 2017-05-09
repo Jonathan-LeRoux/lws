@@ -50,18 +50,23 @@ def stft(x,fsize,fshift,awin,opts={}):
     if	fftsize % 2 ==1:
         raise ValueError('Odd ffts not supported.')
 
-    x = np.hstack((x, np.zeros((fsize-fshift,))))
-    T=np.shape(x)[0]
-    frame_starts = np.arange(0, T-fsize, step = fshift)
-    M=len(frame_starts)
-    spec=np.zeros([M,fftsize/2+1]).astype('complex128')
+    if len(x)%fshift == 0:
+        M = (len(x)-fsize)//fshift + 1
+    else:
+        M = (len(x)-fsize)//fshift + 2
+    frame_starts = fshift * np.arange(M)    
+    T=len(x)
+    x = np.hstack((x, np.zeros(((M-1)*fshift + fsize - T,))))
+    #frame_starts = np.arange(0, T-fsize, step = fshift)
+    #M=len(frame_starts)
+    spec=np.zeros([M,fftsize//2+1]).astype('complex128')
     
     for m in xrange(M):
         frame = x[frame_starts[m]:frame_starts[m] + fsize]*awin
         temp  = scipy.fft(np.squeeze(frame),n=fftsize)
-        spec[m]=temp[:fftsize/2+1]
+        spec[m]=temp[:fftsize//2+1]
 
-    return spec
+    return spec.T
 
 
 def istft(spec,fshift,swin,opts={}):
@@ -71,11 +76,12 @@ def istft(spec,fshift,swin,opts={}):
     if len(np.shape(spec)) != 2: # no multi-channel input
         raise ValueError('We only deal with single channel signals here')
 
-    N, M = np.shape(spec)
-    if M % 2 != 1:
+    spec = spec.T
+    M, N = np.shape(spec)
+    if N % 2 != 1:
         raise ValueError('We expect the spectrogram to only have non-negative frequencies')
 
-    fsize = 2*(M-1)
+    fsize = 2*(N-1)
     if fsize % fshift != 0:
         raise ValueError('Frame shift should be integer ratio of frame size.')
     
@@ -97,12 +103,12 @@ def istft(spec,fshift,swin,opts={}):
     if fftsize > len(swin):
         swin = np.hstack([swin,np.zeros((fftsize-opts['fsize'],))])
 
-    T= fshift * (N-1) + fsize
+    T= fshift * (M-1) + fsize
     signal=np.zeros(T)
 
     x_ran=np.arange(fsize)
 
-    for s in xrange(N):
+    for s in xrange(M):
         iframe=np.real(scipy.ifft(np.concatenate((spec[s], spec[s][-2:0:-1].conjugate())),
                                   n=fftsize))
 
@@ -111,6 +117,10 @@ def istft(spec,fshift,swin,opts={}):
 
     return signal
 
+
+def get_consistency(S,fsize,fshift,awin,swin,opts={}):
+    tmp = stft(istft(S,fshift,swin,opts),fsize,fshift,awin,opts)
+    return 20 * np.log10(np.linalg.norm(S)/np.linalg.norm(tmp-S))
 
 def extspec(S, L, Q):
     # Build an extended spectrograms to avoid requiring modulo in the computations
@@ -168,13 +178,14 @@ def get_thresholds(iterations,alpha,beta,gamma):
 
 
 
-def batch_lws(np.ndarray[np.complex128_t, ndim=2] S, 
-              np.ndarray[np.complex128_t, ndim=3] W, 
-              np.ndarray[np.double_t, ndim=1] thresholds):
+# def batch_lws(np.ndarray[np.complex128_t, ndim=2] S, 
+#               np.ndarray[np.complex128_t, ndim=3] W, 
+#               np.ndarray[np.double_t, ndim=1] thresholds):
         
-    S = np.ascontiguousarray(S)
-    W = np.ascontiguousarray(W)
-    
+#     S = np.ascontiguousarray(S)
+#     W = np.ascontiguousarray(W)
+def batch_lws(S,W,thresholds):
+        
     cdef int L = W.shape[0] - 1
     cdef int Q = W.shape[1]
     cdef int iterations = len(thresholds)
@@ -192,7 +203,7 @@ def batch_lws(np.ndarray[np.complex128_t, ndim=2] S,
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag = np.ascontiguousarray(np.abs(W) > w_threshold, dtype=np.dtype("i"))
     
     # Extend the spectrogram to avoid having to deal with values outside the boundaries
-    cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtS  = extspec(S, L , Q)
+    ExtS  = extspec(S, L , Q)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSr = np.ascontiguousarray(ExtS.real)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSi = np.ascontiguousarray(ExtS.imag)
     # Store the amplitude spectrogram
@@ -215,12 +226,13 @@ def batch_lws(np.ndarray[np.complex128_t, ndim=2] S,
     
     return S_out
 
-def nofuture_lws(np.ndarray[np.complex128_t, ndim=2] S, 
-        np.ndarray[np.complex128_t, ndim=3] W, 
-        np.ndarray[np.double_t, ndim=1] thresholds):
+# def nofuture_lws(np.ndarray[np.complex128_t, ndim=2] S, 
+#         np.ndarray[np.complex128_t, ndim=3] W, 
+#         np.ndarray[np.double_t, ndim=1] thresholds):
         
-    S = np.ascontiguousarray(S)
-    W = np.ascontiguousarray(W)
+#     S = np.ascontiguousarray(S)
+#     W = np.ascontiguousarray(W)
+def nofuture_lws(S,W,thresholds):
     
     cdef int L = W.shape[0] - 1
     cdef int Q = W.shape[1]
@@ -239,7 +251,7 @@ def nofuture_lws(np.ndarray[np.complex128_t, ndim=2] S,
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag = np.ascontiguousarray(np.abs(W) > w_threshold, dtype=np.dtype("i"))
     
     # Extend the spectrogram to avoid having to deal with values outside the boundaries
-    cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtS  = extspec(S, L , Q)
+    ExtS  = extspec(S, L , Q)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSr = np.ascontiguousarray(ExtS.real)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSi = np.ascontiguousarray(ExtS.imag)
     # Store the amplitude spectrogram
@@ -263,18 +275,22 @@ def nofuture_lws(np.ndarray[np.complex128_t, ndim=2] S,
     return S_out
 
 
-def online_lws(np.ndarray[np.complex128_t, ndim=2] S, 
-        np.ndarray[np.complex128_t, ndim=3] W, 
-        np.ndarray[np.complex128_t, ndim=3] W_asym_init, 
-        np.ndarray[np.complex128_t, ndim=3] W_asym_full, 
+# def online_lws(np.ndarray[np.complex128_t, ndim=2] S, 
+#         np.ndarray[np.complex128_t, ndim=3] W, 
+#         np.ndarray[np.complex128_t, ndim=3] W_asym_init, 
+#         np.ndarray[np.complex128_t, ndim=3] W_asym_full, 
+#         np.ndarray[np.double_t, ndim=1] thresholds,
+# 	int LA):
+    # S          = np.ascontiguousarray(S)
+    # W          = np.ascontiguousarray(W)
+    # W_ai       = np.ascontiguousarray(W_asym_init)
+    # W_af       = np.ascontiguousarray(W_asym_full)
+def online_lws(S,
+        W, 
+        W_ai, #W_asym_init, 
+        W_af, #W_asym_full, 
         np.ndarray[np.double_t, ndim=1] thresholds,
-	int LA):
-        
-        
-    S          = np.ascontiguousarray(S)
-    W          = np.ascontiguousarray(W)
-    W_ai       = np.ascontiguousarray(W_asym_init)
-    W_af       = np.ascontiguousarray(W_asym_full)
+	int LA):        
     
     cdef int L = W.shape[0] - 1
     cdef int Q = W.shape[1]
@@ -299,7 +315,7 @@ def online_lws(np.ndarray[np.complex128_t, ndim=2] S,
     cdef np.ndarray[int, ndim=3, mode="c"] Wflag_af = np.ascontiguousarray(np.abs(W_af) > w_threshold, dtype=np.dtype("i"))
     
     # Extend the spectrogram to avoid having to deal with values outside the boundaries
-    cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtS  = extspec(S, L , Q)
+    ExtS  = extspec(S, L , Q)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSr = np.ascontiguousarray(ExtS.real)
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] ExtSi = np.ascontiguousarray(ExtS.imag)
     # Store the amplitude spectrogram
@@ -323,14 +339,17 @@ def online_lws(np.ndarray[np.complex128_t, ndim=2] S,
 
 
 class lws(object):
-    def __init__(self, awin_or_fsize, fshift, L = 2, swin = None, look_ahead = 3,
+    def __init__(self, awin_or_fsize, fshift, L = 5, swin = None, look_ahead = 3,
                  nofuture_iterations = 1, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
                  online_iterations = 10, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
                  batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1
                   ):
-        if (awin_or_fsize.ndim == 1) and (len(awin_or_fsize) == 1) and (awin_or_fsize % fshift == 0): 
-            # a frame size was passed in, build default window
-            awin = np.sqrt(hann(awin_or_fsize,use_offset=False) *2*fshift/awin_or_fsize)
+        if isinstance(awin_or_fsize, ( int, long ) ):
+            if (awin_or_fsize % fshift == 0): 
+                # a frame size was passed in, build default window
+                awin = np.sqrt(hann(awin_or_fsize,use_offset=False) *2*fshift/awin_or_fsize)
+            else:
+                raise ValueError('LWS requires that the window shift divides the window length.')            
         else:
             awin = awin_or_fsize
         if awin.ndim > 1:
@@ -348,7 +367,9 @@ class lws(object):
         self.L = L
         self.Q = np.int(self.fsize/self.fshift)
         self.W = create_weights(self.awin,self.swin,self.fshift,self.L)
-        self.W_ai, self.W_af = build_asymmetric_windows(self.awin * self.swin, self.fshift)
+        self.win_ai, self.win_af = build_asymmetric_windows(self.awin * self.swin, self.fshift)
+        self.W_ai = create_weights(self.win_ai,self.swin,self.fshift,self.L)
+        self.W_af = create_weights(self.win_af,self.swin,self.fshift,self.L)
         self.batch_iterations = batch_iterations
         self.batch_alpha = batch_alpha
         self.batch_beta  = batch_beta
@@ -362,6 +383,12 @@ class lws(object):
         self.nofuture_alpha = nofuture_alpha
         self.nofuture_beta  = nofuture_beta
         self.nofuture_gamma = nofuture_gamma
+
+
+    def get_consistency(self,S):
+        tmp = stft(istft(S,self.fshift,self.swin),self.fsize,self.fshift,self.awin)
+        return 20 * np.log10(np.linalg.norm(S)/np.linalg.norm(tmp-S))
+
 
 
     def run_nofuture_lws(self,S,iterations=None,thresholds=None):
