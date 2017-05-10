@@ -50,6 +50,10 @@ def stft(x,fsize,fshift,awin,opts={}):
     if	fftsize % 2 ==1:
         raise ValueError('Odd ffts not supported.')
 
+    if opts.get('perfectrec',False) is True:
+        pad = np.zeros((fsize - fshift,))
+        x = np.hstack((pad, x, pad))
+
     if len(x)%fshift == 0:
         M = (len(x)-fsize)//fshift + 1
     else:
@@ -101,7 +105,7 @@ def istft(spec,fshift,swin,opts={}):
     fftsize=opts['fftsize']
 
     if fftsize > len(swin):
-        swin = np.hstack([swin,np.zeros((fftsize-opts['fsize'],))])
+        swin = np.hstack([swin,np.zeros((fftsize-fsize,))])
 
     T= fshift * (M-1) + fsize
     signal=np.zeros(T)
@@ -114,6 +118,9 @@ def istft(spec,fshift,swin,opts={}):
 
         iframe= iframe[0:fsize]
         signal[fshift*s+x_ran]+= iframe * np.squeeze(swin)
+
+    if opts.get('perfectrec',False) is True:
+        signal = signal[(fsize-fshift):(T-(fsize-fshift))]
 
     return signal
 
@@ -383,15 +390,21 @@ class lws(object):
         self.nofuture_alpha = nofuture_alpha
         self.nofuture_beta  = nofuture_beta
         self.nofuture_gamma = nofuture_gamma
-
+        self.opts = {'perfectrec':True,'awin':self.awin,'fftsize':self.fsize}
 
     def get_consistency(self,S):
-        tmp = stft(istft(S,self.fshift,self.swin),self.fsize,self.fshift,self.awin)
-        return 20 * np.log10(np.linalg.norm(S)/np.linalg.norm(tmp-S))
+        return get_consistency(S,self.fsize,self.fshift,self.awin,self.swin,self.opts)
 
 
+    def stft(self,S):
+        return stft(S,self.fsize,self.fshift,self.awin,self.opts)
 
-    def run_nofuture_lws(self,S,iterations=None,thresholds=None):
+
+    def istft(self,S):
+        return istft(S,self.fshift,self.swin,self.opts)
+
+
+    def nofuture_lws(self,S,iterations=None,thresholds=None):
         if iterations is None:
             iterations = self.nofuture_iterations
         if thresholds is None:
@@ -399,7 +412,7 @@ class lws(object):
         return nofuture_lws(S,self.W_ai,thresholds)
 
 
-    def run_online_lws(self,S,iterations=None,thresholds=None):
+    def online_lws(self,S,iterations=None,thresholds=None):
         if iterations is None:
             iterations = self.online_iterations
         if thresholds is None:
@@ -407,7 +420,7 @@ class lws(object):
         return online_lws(S,self.W,self.W_ai,self.W_af,thresholds,self.look_ahead)
 
 
-    def run_batch_lws(self,S,iterations=None,thresholds=None):
+    def batch_lws(self,S,iterations=None,thresholds=None):
         if iterations is None:
             iterations = self.batch_iterations
         if thresholds is None:
@@ -416,8 +429,8 @@ class lws(object):
         
 
     def run_lws(self,S):
-        S0 = self.run_nofuture_lws(S)
-        S1 = self.run_online_lws(S0)
-        S2 = self.run_batch_lws(S1)
+        S0 = self.nofuture_lws(S)
+        S1 = self.online_lws(S0)
+        S2 = self.batch_lws(S1)
         return S2
 
