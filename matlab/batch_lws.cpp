@@ -1,5 +1,5 @@
-/* LWS.CPP Construct consistent phase using Local Weighted Sums (LWS)
- * Syntax:    s_out = lws(s_in, weights, thresholds)
+/* BATCH_LWS.CPP Construct consistent phase using Local Weighted Sums (LWS)
+ * Syntax:    s_out = batch_lws(s_in, weights, thresholds)
  *
  * Copyright (C) 2008-2017 Jonathan Le Roux
  * Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 

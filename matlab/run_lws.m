@@ -32,9 +32,6 @@
 %   Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-addpath('./c')
-addpath('./matlab')
-
 %% Deal with the wavread/audioread and wavwrite/audiowrite annoyance
 useaudioread = 0;
 if exist('audioread','file')
@@ -141,7 +138,7 @@ if do_batch_lws
     gamma      = 1;
     thresholds = alpha*exp(-beta*(0:(iterations-1)).^gamma);
 
-    Y=lws(X1,weights,thresholds);
+    Y=batch_lws(X1,weights,thresholds);
     time_bach_lws = toc;
     
     tmp = stft(istft(Y,wshift,S),N,wshift,W)-Y;
