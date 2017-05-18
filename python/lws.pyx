@@ -4,13 +4,15 @@ cimport numpy as np
 import numpy as np
 import scipy
 
-
-def hann(n,use_offset = False):
-    if use_offset:
-        offset = 1
+def hann(n,symmetric=True,use_offset = False):
+    if symmetric:
+        w = 0.5*(1 - np.cos(2*np.pi*(np.arange(1,2*n,2))/(2*n)))
     else:
-        offset = 0
-    w = 0.5*(1 - np.cos(2*np.pi*(np.arange(n)+offset)/n))
+        if use_offset:
+            offset = 1
+        else:
+            offset = 0
+        w = 0.5*(1 - np.cos(2*np.pi*(np.arange(n)+offset)/n))
     return w
 
 
@@ -61,8 +63,6 @@ def stft(x,fsize,fshift,awin,opts={}):
     frame_starts = fshift * np.arange(M)    
     T=len(x)
     x = np.hstack((x, np.zeros(((M-1)*fshift + fsize - T,))))
-    #frame_starts = np.arange(0, T-fsize, step = fshift)
-    #M=len(frame_starts)
     spec=np.zeros([M,fftsize//2+1]).astype('complex128')
     
     for m in xrange(M):
@@ -70,7 +70,7 @@ def stft(x,fsize,fshift,awin,opts={}):
         temp  = scipy.fft(np.squeeze(frame),n=fftsize)
         spec[m]=temp[:fftsize//2+1]
 
-    return spec.T
+    return spec
 
 
 def istft(spec,fshift,swin,opts={}):
@@ -80,7 +80,6 @@ def istft(spec,fshift,swin,opts={}):
     if len(np.shape(spec)) != 2: # no multi-channel input
         raise ValueError('We only deal with single channel signals here')
 
-    spec = spec.T
     M, N = np.shape(spec)
     if N % 2 != 1:
         raise ValueError('We expect the spectrogram to only have non-negative frequencies')
@@ -91,7 +90,7 @@ def istft(spec,fshift,swin,opts={}):
     
     if opts.get('awin',None) is None:
         if not len(swin):
-            opts['awin']=np.sqrt(hann(fsize,use_offset=False) *2*fshift/fsize)
+            opts['awin']=np.sqrt(hann(fsize,symmetric=True,use_offset=False) *2*fshift/fsize)
             swin = opts['awin'] 
         else:
             opts['awin']=swin
@@ -126,20 +125,21 @@ def istft(spec,fshift,swin,opts={}):
 
 
 def get_consistency(S,fsize,fshift,awin,swin,opts={}):
+    # Compute the consistency
     tmp = stft(istft(S,fshift,swin,opts),fsize,fshift,awin,opts)
     return 20 * np.log10(np.linalg.norm(S)/np.linalg.norm(tmp-S))
 
 def extspec(S, L, Q):
     # Build an extended spectrograms to avoid requiring modulo in the computations
-    Nreal,T = S.shape
+    T,Nreal = S.shape
     Np=Nreal+2*L
     Tp=T+2*(Q-1)
-    ExtS = np.zeros((Np,Tp),dtype=S.dtype)
-    ExtS[L:(Nreal+L),(Q-1):(Q-1+T)] = S
-    ExtS[0:L] = np.conjugate(ExtS[(2*L):L:-1])
-    ExtS[(Nreal+L):(Nreal+2*L)] = np.conjugate(ExtS[(Nreal+L-2):(Nreal-2):-1])
-    ExtS[:,:(Q-1)]=np.atleast_2d(ExtS[:,Q-1]).T
-    ExtS[:,(Q-1+T):] = np.atleast_2d(ExtS[:,Q-2+T]).T
+    ExtS = np.zeros((Tp,Np),dtype=S.dtype)
+    ExtS[(Q-1):(Q-1+T),L:(Nreal+L)] = S
+    ExtS[:,0:L] = np.conjugate(ExtS[:,(2*L):L:-1])
+    ExtS[:,(Nreal+L):(Nreal+2*L)] = np.conjugate(ExtS[:,(Nreal+L-2):(Nreal-2):-1])
+    ExtS[:(Q-1)]=np.atleast_2d(ExtS[Q-1])
+    ExtS[(Q-1+T):] = np.atleast_2d(ExtS[Q-2+T])
     return ExtS
     
 
@@ -157,6 +157,7 @@ def create_weights(awin,swin,fshift,L):
     W[0,0] = W[0,0] - 1
     tmp = np.exp(1j*2*np.pi*np.atleast_2d(np.arange(Q)).T*np.arange(Q)/Q)
     W = W[:,np.newaxis] * tmp[np.newaxis,:]
+    W = W.transpose((1,2,0)) # get back to row-major ordering, W is now Q*Q*(L+1)
     return W
 
 
@@ -180,24 +181,18 @@ def build_asymmetric_windows(awin_swin,fshift):
 
 
 def get_thresholds(iterations,alpha,beta,gamma):
+    # Compute the sparsity thresholds used to determine which T-F bins to update
     thresholds = alpha * np.exp(- beta * np.arange(iterations)**gamma)
     return thresholds
 
 
-
-# def batch_lws(np.ndarray[np.complex128_t, ndim=2] S, 
-#               np.ndarray[np.complex128_t, ndim=3] W, 
-#               np.ndarray[np.double_t, ndim=1] thresholds):
-        
-#     S = np.ascontiguousarray(S)
-#     W = np.ascontiguousarray(W)
 def batch_lws(S,W,thresholds):
-        
-    cdef int L = W.shape[0] - 1
-    cdef int Q = W.shape[1]
+    # Batch mode LWS phase reconstruction
+    cdef int L = W.shape[2] - 1
+    cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
-    cdef int Nreal = S.shape[0]
-    cdef int T = S.shape[1]
+    cdef int T = S.shape[0]
+    cdef int Nreal = S.shape[1]
     if Nreal % 2 == 0:
         raise ValueError('Please only include non-negative frequencies in the input spectrogram.')
     cdef int N = 2*(Nreal-1)
@@ -216,7 +211,7 @@ def batch_lws(S,W,thresholds):
     # Store the amplitude spectrogram
     cdef np.ndarray[np.double_t, ndim=2, mode="c"] AmpSpec = np.ascontiguousarray(np.abs(ExtS))
     cdef double mean_amp = np.mean(np.abs(S))
-    
+
     # Perform the phase updates
     cdef double threshold
     for i in range(iterations):
@@ -226,26 +221,23 @@ def batch_lws(S,W,thresholds):
         elif Q == 4:
             lwslib.LWSQ4(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
         else:
-            lwslib.LWSanyQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L,Q, threshold)
+            lwslib.LWSanyQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, Q, threshold)
     
     # Extract the non-redundant part of the spectrogram
-    S_out =  ExtSr[L:(Nreal+L),(Q-1):(Q-1+T)] + 1j * ExtSi[L:(Nreal+L),(Q-1):(Q-1+T)]
+    S_out =  ExtSr[(Q-1):(Q-1+T),L:(Nreal+L)] + 1j * ExtSi[(Q-1):(Q-1+T),L:(Nreal+L)]
     
     return S_out
 
-# def nofuture_lws(np.ndarray[np.complex128_t, ndim=2] S, 
-#         np.ndarray[np.complex128_t, ndim=3] W, 
-#         np.ndarray[np.double_t, ndim=1] thresholds):
-        
-#     S = np.ascontiguousarray(S)
-#     W = np.ascontiguousarray(W)
+
 def nofuture_lws(S,W,thresholds):
+    # Batch mode LWS phase reconstruction only considering past frames.
+    # Typically only use for initialization.
     
-    cdef int L = W.shape[0] - 1
-    cdef int Q = W.shape[1]
+    cdef int L = W.shape[2] - 1
+    cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
-    cdef int Nreal = S.shape[0]
-    cdef int T = S.shape[1]
+    cdef int T = S.shape[0]
+    cdef int Nreal = S.shape[1]
     if Nreal % 2 == 0:
         raise ValueError('Please only include non-negative frequencies in the input spectrogram.')
     cdef int N = 2*(Nreal-1)
@@ -277,33 +269,24 @@ def nofuture_lws(S,W,thresholds):
             lwslib.NoFuture_LWSanyQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L,Q, threshold)
     
     # Extract the non-redundant part of the spectrogram
-    S_out =  ExtSr[L:(Nreal+L),(Q-1):(Q-1+T)] + 1j * ExtSi[L:(Nreal+L),(Q-1):(Q-1+T)]
+    S_out =  ExtSr[(Q-1):(Q-1+T),L:(Nreal+L)] + 1j * ExtSi[(Q-1):(Q-1+T),L:(Nreal+L)]
     
     return S_out
 
 
-# def online_lws(np.ndarray[np.complex128_t, ndim=2] S, 
-#         np.ndarray[np.complex128_t, ndim=3] W, 
-#         np.ndarray[np.complex128_t, ndim=3] W_asym_init, 
-#         np.ndarray[np.complex128_t, ndim=3] W_asym_full, 
-#         np.ndarray[np.double_t, ndim=1] thresholds,
-# 	int LA):
-    # S          = np.ascontiguousarray(S)
-    # W          = np.ascontiguousarray(W)
-    # W_ai       = np.ascontiguousarray(W_asym_init)
-    # W_af       = np.ascontiguousarray(W_asym_full)
 def online_lws(S,
         W, 
         W_ai, #W_asym_init, 
         W_af, #W_asym_full, 
         np.ndarray[np.double_t, ndim=1] thresholds,
-	int LA):        
+	int LA):
+    # Online mode LWS phase reconstruction
     
-    cdef int L = W.shape[0] - 1
-    cdef int Q = W.shape[1]
+    cdef int L = W.shape[2] - 1
+    cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
-    cdef int Nreal = S.shape[0]
-    cdef int T = S.shape[1]
+    cdef int T = S.shape[0]
+    cdef int Nreal = S.shape[1]
     if Nreal % 2 == 0:
         raise ValueError('Please only include non-negative frequencies in the input spectrogram.')
     cdef int N = 2*(Nreal-1)
@@ -340,7 +323,7 @@ def online_lws(S,
                 &thresholds[0], update_type)
 
     # Extract the non-redundant part of the spectrogram
-    S_out =  ExtSr[L:(Nreal+L),(Q-1):(Q-1+T)] + 1j * ExtSi[L:(Nreal+L),(Q-1):(Q-1+T)]
+    S_out =  ExtSr[(Q-1):(Q-1+T),L:(Nreal+L)] + 1j * ExtSi[(Q-1):(Q-1+T),L:(Nreal+L)]
     
     return S_out
 
@@ -349,12 +332,12 @@ class lws(object):
     def __init__(self, awin_or_fsize, fshift, L = 5, swin = None, look_ahead = 3,
                  nofuture_iterations = 1, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
                  online_iterations = 10, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
-                 batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1
-                  ):
+                 batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
+                 symmetric_win = True, stft_opts = {}):
         if isinstance(awin_or_fsize, ( int, long ) ):
             if (awin_or_fsize % fshift == 0): 
                 # a frame size was passed in, build default window
-                awin = np.sqrt(hann(awin_or_fsize,use_offset=False) *2*fshift/awin_or_fsize)
+                awin = np.sqrt(hann(awin_or_fsize,symmetric=symmetric_win,use_offset=False) *2*fshift/awin_or_fsize)
             else:
                 raise ValueError('LWS requires that the window shift divides the window length.')            
         else:
@@ -390,18 +373,19 @@ class lws(object):
         self.nofuture_alpha = nofuture_alpha
         self.nofuture_beta  = nofuture_beta
         self.nofuture_gamma = nofuture_gamma
-        self.opts = {'perfectrec':True,'awin':self.awin,'fftsize':self.fsize}
+        self.stft_opts = {'perfectrec':True,'awin':self.awin,'fftsize':self.fsize}
+        self.stft_opts.update(stft_opts)
 
     def get_consistency(self,S):
-        return get_consistency(S,self.fsize,self.fshift,self.awin,self.swin,self.opts)
+        return get_consistency(S,self.fsize,self.fshift,self.awin,self.swin,self.stft_opts)
 
 
     def stft(self,S):
-        return stft(S,self.fsize,self.fshift,self.awin,self.opts)
+        return stft(S,self.fsize,self.fshift,self.awin,self.stft_opts)
 
 
     def istft(self,S):
-        return istft(S,self.fshift,self.swin,self.opts)
+        return istft(S,self.fshift,self.swin,self.stft_opts)
 
 
     def nofuture_lws(self,S,iterations=None,thresholds=None):

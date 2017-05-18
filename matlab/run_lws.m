@@ -140,7 +140,7 @@ if do_batch_lws
     gamma      = 1;
     thresholds = alpha*exp(-beta*(0:(iterations-1)).^gamma);
 
-    Y=lws(X1,weights,thresholds);
+    Y=batch_lws(X1,weights,thresholds);
     time_bach_lws = toc;
     
     tmp = stft(istft(Y,wshift,S),N,wshift,W)-Y;

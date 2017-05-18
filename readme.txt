@@ -2,14 +2,14 @@ Phase recovery using Local Weighted Sums (LWS)
 Author: Jonathan Le Roux -- 2008-2017
 
 The LWS software includes the following files:
-run_lws.m                          # example script (Matlab)
 lwslib/lwslib.cpp                  # core functions
-lwslib/lwslib.  h                  # header file
+lwslib/lwslib.h                    # header file
+matlab/run_lws.m                   # Matlab example script
 matlab/build_asymmetric_windows.m  # code to build assymetric windows as in RTISI-LA (Matlab) 
 matlab/create_weights.m            # code to create complex weights used in LWS (Matlab)
 matlab/istft.m                     # inverse STFT code (matlab)
 matlab/stft.m                      # STFT code (matlab)
-matlab/lws.cpp                     # mex file for LWS
+matlab/batch_lws.cpp                     # mex file for LWS
 matlab/nofuture_lws.cpp            # mex file for "no future" LWS initialization
 matlab/online_lws.cpp              # mex file for online LWS
 
@@ -47,6 +47,8 @@ Proc. of ASJ Autumn Meeting, 3-10-3, Sep. 2010.
 
 Remark: the .cpp files are actually C code with some C99 style comments, but the .cpp extension is needed on Windows for mex to acknowledge the c99 flag (with .c, it is discarded, and -ansi used instead, leading to compilation errors)
 
+Acknowledgements: the recipe to wrap the LWS C code as a python module was largely inspired by Martin Sosic's post: http://martinsosic.com/development/2016/02/08/wrapping-c-library-as-python-module.html
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -55,9 +57,10 @@ Remark: the .cpp files are actually C code with some C99 style comments, but the
 ## Matlab 
 1) Compiling mex files
 
-    mex -I"lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output lws lwslib/lwslib.cpp matlab/lws.cpp
-    mex -I"lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws lwslib/lwslib.cpp matlab/online_lws.cpp
-    mex -I"lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws lwslib/lwslib.cpp matlab/nofuture_lws.cpp
+    cd matlab/
+    mex -I"../lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output batch_lws ../lwslib/lwslib.cpp batch_lws.cpp
+    mex -I"../lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws ../lwslib/lwslib.cpp online_lws.cpp
+    mex -I"../lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws ../lwslib/lwslib.cpp nofuture_lws.cpp
 
 2) Usage
 
@@ -65,6 +68,16 @@ Please follow/modify run_lws.m.
 Three steps are implemented, and they can be turned on/off independently:
   * "no future" LWS: phase initialization using LWS updates that only involve past frames
   * online LWS: phase estimation using online LWS updates, corresponding to a fast time-frequency domain version of RTISI-LA
-  * LWS: phase estimation using batch LWS updates on the whole spectrogram
+  * batch LWS: phase estimation using batch LWS updates on the whole spectrogram
 
 ## Python
+
+1) Compiling using cython:
+    cd python
+    make
+
+2) Alternatively, one can install from the tarball without needing cython:
+    pip install dist/lws-1.0.0.tar.gz
+
+3) 
+    pip install lws
