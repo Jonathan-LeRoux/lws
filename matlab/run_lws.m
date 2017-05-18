@@ -32,9 +32,6 @@
 %   Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-addpath('./c')
-addpath('./matlab')
-
 %% Deal with the wavread/audioread and wavwrite/audiowrite annoyance
 useaudioread = 0;
 if exist('audioread','file')
@@ -52,11 +49,13 @@ N=512;
 wshift=128;
 Q=N/wshift;
 % Note: the code assumes the windows are symmetric, i.e., W(n) = W(N+1-n)
-W=sqrt((0.5-0.5*cos(2*pi*(1:2:2*N-1)'/(2*N)))/Q*2);
-S=sqrt((0.5-0.5*cos(2*pi*(1:2:2*N-1)'/(2*N)))/Q*2);
+%W=sqrt((0.5-0.5*cos(2*pi*(1:2:2*N-1)'/(2*N)))/Q*2);
+%S=sqrt((0.5-0.5*cos(2*pi*(1:2:2*N-1)'/(2*N)))/Q*2);
+W=sqrt((0.5-0.5*cos(2*pi*(0:(N-1))'/(N)))/Q*2);
+S=sqrt((0.5-0.5*cos(2*pi*(0:(N-1))'/(N)))/Q*2);
 
 %% Get the wav file in
-infile='rwc-g-01-16k_ex.wav';
+infile='../rwc-g-01-16k_ex.wav';
 if useaudioread
     [x,fs]=audioread(infile);
 else
@@ -118,7 +117,7 @@ if do_online_lws
     
     tmp = stft(istft(X1,wshift,S),N,wshift,W)-X1;
     C1 = 10*log10(Xpow / sum(abs(tmp(:)).^2));
-    fprintf(1,'Online LWS      : %5.2f dB (time: %.2f s)\n',C1,time_online_lws);
+    fprintf(1,'+Online LWS     : %5.2f dB (time: %.2f s)\n',C1,time_online_lws);
     if output_wav
         x1=istft(X1,wshift,S);
         if useaudioread
@@ -146,7 +145,7 @@ if do_batch_lws
     
     tmp = stft(istft(Y,wshift,S),N,wshift,W)-Y;
     Cfinal = 10*log10(Xpow / sum(abs(tmp(:)).^2));
-    fprintf(1,'Online+batch LWS: %5.2f dB (time: %.2f s)\n',Cfinal,time_bach_lws);
+    fprintf(1,'+Batch LWS      : %5.2f dB (time: %.2f s)\n',Cfinal,time_bach_lws);
     if output_wav
         y=istft(Y,wshift,S);
         if useaudioread
