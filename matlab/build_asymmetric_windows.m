@@ -21,8 +21,7 @@ N=length(WS);
 Q=N/fshift;
 
 tmp = zeros(N,Q);
-tmp(:,1)=WS;
-for q=1:(Q-1)
+for q=0:(Q-1)
     tmp(1:(N-q*fshift),q+1)=WS((q*fshift+1):N);
 end
 
