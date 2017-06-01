@@ -98,7 +98,7 @@ Three steps are implemented, and they can be turned on/off independently:
     make
 
 2) Alternatively, one can install from the tarball without needing cython:
-    pip install dist/lws-1.0.0.tar.gz
+    pip install dist/lws-1.0.tar.gz
 
 3) Install using pip
     pip install lws
