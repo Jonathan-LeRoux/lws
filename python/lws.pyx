@@ -369,10 +369,10 @@ class lws(object):
         self.look_ahead = look_ahead
         
         if mode == 'speech':
-            batch_iterations = 0
+            nofuture_iterations = 0
             online_iterations= 0
         elif mode == 'music':
-            batch_iterations = 1
+            nofuture_iterations = 1
             online_iterations= 10
 
         self.batch_iterations = batch_iterations

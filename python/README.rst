@@ -78,11 +78,13 @@ Three steps are implemented, and they can be turned on/off independently by appr
   * LWS: phase estimation using batch LWS updates on the whole spectrogram
 
 
-------
-Remark
-------
+-------
+Remarks
+-------
 
-The .cpp files are actually C code with some C99 style comments, but the .cpp extension is needed on Windows for mex to acknowledge the c99 flag (with .c, it is discarded, and -ansi used instead, leading to compilation errors)
+1) The .cpp files are actually C code with some C99 style comments, but the .cpp extension is needed on Windows for mex to acknowledge the c99 flag (with .c, it is discarded, and -ansi used instead, leading to compilation errors)
+
+2) Because the module is a C extension, it cannot be reloaded (see <http://bugs.python.org/issue1144263>). In Jupyter Notebooks, in particular, autoreload will not work, and the kernel has to be restarted.
 
 ----------------
 Acknowledgements
