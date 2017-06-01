@@ -13,10 +13,10 @@ cmdclass = {}
 USE_CYTHON = os.getenv('LWS_USE_CYTHON', False)
 if USE_CYTHON:
     from Cython.Build import build_ext
-    edlib_module_src = "lws.pyx"
+    lws_module_src = "lws.pyx"
     cmdclass['build_ext'] = build_ext
 else:
-    edlib_module_src = "lws.bycython.c"
+    lws_module_src = "lws.bycython.cpp"
 
 
 long_description = ""
@@ -30,15 +30,15 @@ setup(
     name = "lws",
     description = "Fast spectrogram phase reconstruction using Local Weighted Sums",
     long_description = long_description,
-    version = "1.0.0",
+    version = "1.0",
     url = "http://www.jonathanleroux.org/",
     author = "Jonathan Le Roux",
     author_email = "leroux@merl.com",
     license = "Apache 2.0",
-    keywords = "phase reconstruction stft",
+    keywords = ['phase', 'reconstruction', 'stft', 'short-term Fourier Transform', 'spectrogram'],
     # Build instructions
     ext_modules = [Extension("lws",
-                             sources=["lws.bycython.cpp","lwslib/lwslib.cpp"],
+                             sources=[lws_module_src,"lwslib/lwslib.cpp"],
                              include_dirs=["lwslib/",np.get_include()],
                              language="c++",
                              extra_compile_args=["-O3"])],

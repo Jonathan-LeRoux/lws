@@ -336,10 +336,10 @@ def online_lws(S,
 
 class lws(object):
     def __init__(self, awin_or_fsize, fshift, L = 5, swin = None, look_ahead = 3,
-                 nofuture_iterations = 1, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
-                 online_iterations = 10, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
+                 nofuture_iterations = 0, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
+                 online_iterations = 0, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
                  batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
-                 symmetric_win = True, stft_opts = {}):
+                 symmetric_win = True, mode= None, stft_opts = {}):
         if isinstance(awin_or_fsize, ( int, long ) ):
             if (awin_or_fsize % fshift == 0): 
                 # a frame size was passed in, build default window
@@ -366,6 +366,15 @@ class lws(object):
         self.win_ai, self.win_af = build_asymmetric_windows(self.awin * self.swin, self.fshift)
         self.W_ai = create_weights(self.win_ai,self.swin,self.fshift,self.L)
         self.W_af = create_weights(self.win_af,self.swin,self.fshift,self.L)
+        self.look_ahead = look_ahead
+        
+        if mode == 'speech':
+            batch_iterations = 0
+            online_iterations= 0
+        elif mode == 'music':
+            batch_iterations = 1
+            online_iterations= 10
+
         self.batch_iterations = batch_iterations
         self.batch_alpha = batch_alpha
         self.batch_beta  = batch_beta
@@ -374,11 +383,11 @@ class lws(object):
         self.online_alpha = online_alpha
         self.online_beta  = online_beta
         self.online_gamma = online_gamma
-        self.look_ahead = look_ahead
         self.nofuture_iterations = nofuture_iterations
         self.nofuture_alpha = nofuture_alpha
         self.nofuture_beta  = nofuture_beta
         self.nofuture_gamma = nofuture_gamma
+
         self.stft_opts = {'perfectrec':True,'awin':self.awin,'fftsize':self.fsize}
         self.stft_opts.update(stft_opts)
 
