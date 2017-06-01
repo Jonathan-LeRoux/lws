@@ -191,6 +191,8 @@ def batch_lws(S,W,thresholds):
     cdef int L = W.shape[2] - 1
     cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
+    if iterations == 0:
+        return S
     cdef int T = S.shape[0]
     cdef int Nreal = S.shape[1]
     if Nreal % 2 == 0:
@@ -236,6 +238,8 @@ def nofuture_lws(S,W,thresholds):
     cdef int L = W.shape[2] - 1
     cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
+    if iterations == 0:
+        return S
     cdef int T = S.shape[0]
     cdef int Nreal = S.shape[1]
     if Nreal % 2 == 0:
@@ -285,6 +289,8 @@ def online_lws(S,
     cdef int L = W.shape[2] - 1
     cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
+    if iterations == 0:
+        return S
     cdef int T = S.shape[0]
     cdef int Nreal = S.shape[1]
     if Nreal % 2 == 0:
