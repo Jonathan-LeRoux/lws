@@ -4,7 +4,7 @@ default: build
 FILES=lwslib lws.bycython.cpp setup.py MANIFEST.in README.rst
 
 lwslib: ../lwslib
-	cp -R ../lwslib lwslib
+	cp -R ../lwslib .
 
 lws.bycython.cpp: lws.pyx lwslib.pxd
 	cython --cplus lws.pyx -o lws.bycython.cpp
