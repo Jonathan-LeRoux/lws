@@ -72,7 +72,7 @@ Usage
 
 
 
-Three steps are implemented, and they can be turned on/off independently:
+Three steps are implemented, and they can be turned on/off independently by appropriately setting the corresponding number of iterations:
   * "no future" LWS: phase initialization using LWS updates that only involve past frames
   * online LWS: phase estimation using online LWS updates, corresponding to a fast time-frequency domain version of RTISI-LA
   * LWS: phase estimation using batch LWS updates on the whole spectrogram
