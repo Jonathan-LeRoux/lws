@@ -16,7 +16,7 @@ if USE_CYTHON:
     lws_module_src = "lws.pyx"
     cmdclass['build_ext'] = build_ext
 else:
-    lws_module_src = "lws.bycython.c"
+    lws_module_src = "lws.bycython.cpp"
 
 
 long_description = ""
