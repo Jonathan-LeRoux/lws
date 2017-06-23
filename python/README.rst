@@ -66,19 +66,19 @@ Installation
 
     pip install lws
 
-2) To compile from source using the pre-generated c source file (which was obtained with cython): 
-
-.. code-block:: bash
-
-    cd python
-    make
-
-3) To compile from source using cython (required if one modifies the code):  
+2) To compile from source using cython (required if one modifies the code):  
 
 .. code-block:: bash
 
     cd python
     LWS_USE_CYTHON=1 make 
+
+3) To compile from source using the pre-generated c source file (which was obtained with cython): 
+
+.. code-block:: bash
+
+    cd python
+    make
 
 4) Alternatively, one can first use cython to create a tarball, which can then be installed by pip:  
 
