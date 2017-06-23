@@ -55,7 +55,7 @@ W=sqrt((0.5-0.5*cos(2*pi*(0:(N-1))'/(N)))/Q*2);
 S=sqrt((0.5-0.5*cos(2*pi*(0:(N-1))'/(N)))/Q*2);
 
 %% Get the wav file in
-infile='../rwc-g-01-16k_ex.wav';
+infile='test.wav'; % please provide a test file
 if useaudioread
     [x,fs]=audioread(infile);
 else
