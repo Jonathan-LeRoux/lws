@@ -1,4 +1,3 @@
-===
 LWS
 ===
 
@@ -9,20 +8,19 @@ Author: Jonathan Le Roux -- 2008-2017
 | LWS is a C/C++ library for which this package is a Python wrapper.
 | A Matlab/Mex wrapper is also available.
 
--------
 License
 -------
 
 | Copyright (C) 2008-2017 Jonathan Le Roux
 | Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
----------
 Reference
 ---------
 
 If you use this code, please cite the following papers.
 
-## LWS ##
+LWS
+~~~
 
 | Jonathan Le Roux, Hirokazu Kameoka, Nobutaka Ono, Shigeki Sagayama, 
 | "Fast Signal Reconstruction from Magnitude STFT Spectrogram Based on Spectrogram Consistency," 
@@ -41,7 +39,8 @@ If you use this code, please cite the following papers.
     
 
 
-## Online LWS, "No future" LWS ##
+Online LWS, "No future" LWS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 | Jonathan Le Roux, Hirokazu Kameoka, Nobutaka Ono, Shigeki Sagayama, 
 | "Phase initialization schemes for faster spectrogram-consistency-based signal reconstruction," 
@@ -58,16 +57,31 @@ If you use this code, please cite the following papers.
       month =	 mar
     }
     
-
-
-------------
 Installation
 ------------
-.. code::
+
+1) The easiest way to install `lws` is via `pip`:  
+
+.. code-block:: bash
 
     pip install lws
 
------
+2) To compile from source using cython:  
+
+.. code-block:: bash
+
+    cd python
+    make
+
+3) Alternatively, one can first use cython to create a tarball, which is then installed by pip:  
+
+.. code-block:: bash
+
+    cd python
+    make sdist
+    pip install dist/lws-1.0.tar.gz
+
+
 Usage
 -----
 .. code:: python
@@ -86,15 +100,15 @@ There are many options, but the default ones should be good:
               batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
               symmetric_win = True, mode= None, stft_opts = {})
 
-| ``awin_or_fsize``: either the analysis window, or a window length (in which case the sqrt(hann) window is used)
-| ``fshift``: window shift
-| ``L``: approximation order in the phase reconstruction algorithm, 5 should be good.
-| ``swin``: synthesis window (if None, it gets computed from the analysis window for perfect reconstruction)
-| ``look_ahead``: number of look-ahead frames in RTISI-LA-like algorithm, 3 should be good.
-| ``xxx_iterations``, ``xxx_alpha``, ``xxx_beta``, ``xxx_gamma``: number of iterations of algorithm xxx (where xxx is one of ``nofuture``, ``online``, or ``batch``), and parameters alpha/beta/gamma of the decreasing sparsity curve that is used to determine which bins get updated at each iteration. Any bin with magnitude larger than a given threshold is updated, others are ignored (``thresholds = alpha * np.exp(- beta * np.arange(iterations)**gamma)``)
-| ``symmetric_win``: determines whether to use a symmetric hann window or not
-| ``mode``: ``None``, ``'speech'``, or ``'music'``. This sets default numbers of iterations of each algorithm that seem to be good for speech and music signals. Disclaimer: your mileage may vary.
-| ``stft_opts``: ``{'perfectrec':True,'fftsize':self.fsize}``. ``perfectrec``: whether to pad with zeros on each side to ensure perfect reconstruction at the boundaries too. ``fftsize``: can be set longer than frame size to do 0-padding in the FFT.
+* ``awin_or_fsize``: either the analysis window, or a window length (in which case the sqrt(hann) window is used)
+* ``fshift``: window shift
+* ``L``: approximation order in the phase reconstruction algorithm, 5 should be good.
+* ``swin``: synthesis window (if None, it gets computed from the analysis window for perfect reconstruction)
+* ``look_ahead``: number of look-ahead frames in RTISI-LA-like algorithm, 3 should be good.
+* ``xxx_iterations``, ``xxx_alpha``, ``xxx_beta``, ``xxx_gamma``: number of iterations of algorithm xxx (where xxx is one of ``nofuture``, ``online``, or ``batch``), and parameters alpha/beta/gamma of the decreasing sparsity curve that is used to determine which bins get updated at each iteration. Any bin with magnitude larger than a given threshold is updated, others are ignored (``thresholds = alpha * np.exp(- beta * np.arange(iterations)**gamma)``)
+* ``symmetric_win``: determines whether to use a symmetric hann window or not
+* ``mode``: ``None``, ``'speech'``, or ``'music'``. This sets default numbers of iterations of each algorithm that seem to be good for speech and music signals. Disclaimer: your mileage may vary.
+* ``stft_opts``: ``{'perfectrec':True,'fftsize':self.fsize}``. ``perfectrec``: whether to pad with zeros on each side to ensure perfect reconstruction at the boundaries too. ``fftsize``: can be set longer than frame size to do 0-padding in the FFT.
 
 Three steps are implemented, and they can be turned on/off independently by appropriately setting the corresponding number of iterations:
   * "no future" LWS: phase initialization using LWS updates that only involve past frames
@@ -102,7 +116,6 @@ Three steps are implemented, and they can be turned on/off independently by appr
   * LWS: phase estimation using batch LWS updates on the whole spectrogram
 
 
--------
 Remarks
 -------
 
@@ -110,7 +123,6 @@ Remarks
 
 2) Because the module is a C extension, it cannot be reloaded (see <http://bugs.python.org/issue1144263>). In Jupyter Notebooks, in particular, autoreload will not work, and the kernel has to be restarted.
 
-----------------
 Acknowledgements
 ----------------
 
