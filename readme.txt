@@ -36,7 +36,7 @@ If you use this code, please cite the following papers.
 
 ## LWS ##
 
-Jonathan Le Roux, Hirokazu Kameoka, Nobutaka Ono and Shigeki Sagayama, 
+Jonathan Le Roux, Hirokazu Kameoka, Nobutaka Ono, Shigeki Sagayama, 
 "Fast Signal Reconstruction from Magnitude STFT Spectrogram Based on Spectrogram Consistency," 
 in Proc. International Conference on Digital Audio Effects (DAFx), pp. 397--403, Sep. 2010.
 
@@ -52,7 +52,7 @@ in Proc. International Conference on Digital Audio Effects (DAFx), pp. 397--403,
 
 ## Online LWS, "No future" LWS ##
 
-Jonathan Le Roux, Hirokazu Kameoka, Nobutaka Ono and Shigeki Sagayama, 
+Jonathan Le Roux, Hirokazu Kameoka, Nobutaka Ono, Shigeki Sagayama, 
 "Phase initialization schemes for faster spectrogram-consistency-based signal reconstruction," 
 Proc. of ASJ Autumn Meeting, 3-10-3, Sep. 2010.
 
@@ -60,7 +60,7 @@ Proc. of ASJ Autumn Meeting, 3-10-3, Sep. 2010.
       author =	 {Jonathan {Le Roux} and Hirokazu Kameoka and Nobutaka Ono and Shigeki Sagayama},
       title =	 {Phase Initialization Schemes for Faster Spectrogram-Consistency-Based Signal Reconstruction},
       year =	 2010,
-      booktitle =	 {Proceedings of the Acoustical Society of Japan Autumn Meeting (ASJ)},
+      booktitle =	 {Proc. Acoustical Society of Japan Autumn Meeting (ASJ)},
       number =	 {3-10-3},
       month =	 mar
     }
