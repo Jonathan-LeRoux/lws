@@ -87,10 +87,12 @@ Installation:
 
 1) Compiling mex files
 
+    ```sh
     cd matlab/
     mex -I"../lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output batch_lws ../lwslib/lwslib.cpp batch_lws.cpp
     mex -I"../lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output online_lws ../lwslib/lwslib.cpp online_lws.cpp
     mex -I"../lwslib/" -O CFLAGS="\$CFLAGS -std=c99" -output nofuture_lws ../lwslib/lwslib.cpp nofuture_lws.cpp
+    ```
 
 2) Usage
 
@@ -102,24 +104,32 @@ Three steps are implemented, and they can be turned on/off independently:
 
 ### Python
 
-1) The easiest way to install `lws` is via `pip`:  
+1) The easiest way to install `lws` is via `pip`:
 
+    ```sh
     pip install lws
+    ```
 
-2) To compile from source using cython (required if one modifies the code):  
+2) To compile from source using cython (required if one modifies the code):
 
+    ```sh
     cd python
-    LWS_USE_CYTHON=1 make 
+    LWS_USE_CYTHON=1 make
+    ```
 
-3) To compile from source using the pre-generated c source file (which was obtained with cython): 
+3) To compile from source using the pre-generated c source file (which was obtained with cython):
 
+    ```sh
     cd python
     make
+    ```
     
-4) Alternatively, one can first use cython to create a tarball, which can then be installed with pip:  
+4) Alternatively, one can first use cython to create a tarball, which can then be installed with pip:
 
+    ```sh
     cd python
     make sdist
     pip install dist/lws-1.0.tar.gz
-
+    ```
+    
 For usage, please refer to `python/readme.rst`.

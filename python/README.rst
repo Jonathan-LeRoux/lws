@@ -125,9 +125,9 @@ Options
 * ``stft_opts``: ``{'perfectrec':True,'fftsize':self.fsize}``. ``perfectrec``: whether to pad with zeros on each side to ensure perfect reconstruction at the boundaries too. ``fftsize``: can be set longer than frame size to do 0-padding in the FFT.
 
 Three steps are implemented, and they can be turned on/off independently by appropriately setting the corresponding number of iterations:
-  * "no future" LWS: phase initialization using LWS updates that only involve past frames
-  * online LWS: phase estimation using online LWS updates, corresponding to a fast time-frequency domain version of RTISI-LA
-  * LWS: phase estimation using batch LWS updates on the whole spectrogram
+* "no future" LWS: phase initialization using LWS updates that only involve past frames
+* online LWS: phase estimation using online LWS updates, corresponding to a fast time-frequency domain version of RTISI-LA
+* LWS: phase estimation using batch LWS updates on the whole spectrogram
 
 
 Remarks
