@@ -1,4 +1,6 @@
 Phase recovery using Local Weighted Sums (LWS)
+==============================================
+
 Author: Jonathan Le Roux -- 2008-2017
 
 The LWS software includes the following files:
@@ -25,12 +27,13 @@ python/                      # Python module
   -lwslib.pxd                  # Cython header file
   -setup.py                    # Main module distribution file
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Copyright (C) 2008-2017 Jonathan Le Roux                   % 
-%   Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)   % 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+License
+-------
+Copyright (C) 2008-2017 Jonathan Le Roux
+Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
-# Citing this code
+Citing this code
+----------------
 
 If you use this code, please cite the following papers.
 
