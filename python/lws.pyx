@@ -279,11 +279,11 @@ def nofuture_lws(S,W,thresholds):
 
 
 def online_lws(S,
-        W, 
-        W_ai, #W_asym_init, 
-        W_af, #W_asym_full, 
-        np.ndarray[np.double_t, ndim=1] thresholds,
-	int LA):
+               W, 
+               W_ai, #W_asym_init, 
+               W_af, #W_asym_full, 
+               np.ndarray[np.double_t, ndim=1] thresholds,
+               int LA):
     # Online mode LWS phase reconstruction
     
     cdef int L = W.shape[2] - 1
