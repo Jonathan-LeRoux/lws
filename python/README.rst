@@ -66,14 +66,21 @@ Installation
 
     pip install lws
 
-2) To compile from source using cython:  
+2) To compile from source using the pre-generated c source file (which was obtained with cython): 
 
 .. code-block:: bash
 
     cd python
     make
 
-3) Alternatively, one can first use cython to create a tarball, which is then installed by pip:  
+3) To compile from source using cython (required if one modifies the code):  
+
+.. code-block:: bash
+
+    cd python
+    LWS_USE_CYTHON=1 make 
+
+4) Alternatively, one can first use cython to create a tarball, which can then be installed by pip:  
 
 .. code-block:: bash
 
@@ -87,10 +94,17 @@ Usage
 .. code:: python
 
     import lws
+    import numpy as np
+    
     lws_processor=lws.lws(512,128, mode="speech") # 512: window length; 128: window shift
-    lws_processor.run_lws(X) # where X is the initial complex spectrogram whose phase one wants to reconstruct
+    X = lws_processor.stft(x) # where x is a single-channel waveform
+    X0 = np.abs(X) # Magnitude spectrogram
+    print('{:6}: {:5.2f} dB'.format('Abs(X)', lws_processor.get_consistency(X0))
+    X1 = lws_processor.run_lws(X0) # reconstruction from magnitude (in general, one can reconstruct from an initial complex spectrogram)
+    print('{:6}: {:5.2f} dB'.format('LWS', lws_processor.get_consistency(X1)))
 
-There are many options, but the default ones should be good:
+Options
+-------
 
 .. code:: python
 
