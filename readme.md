@@ -1,5 +1,5 @@
-Phase recovery using Local Weighted Sums (LWS)
-==============================================
+Fast spectrogram phase recovery using Local Weighted Sums (LWS)
+===============================================================
 
 Author: Jonathan Le Roux -- 2008-2017
 
