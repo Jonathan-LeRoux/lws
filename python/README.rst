@@ -19,8 +19,8 @@ Reference
 
 If you use this code, please cite the following papers.
 
-LWS
-~~~
+Batch LWS
+~~~~~~~~~
 
 | Jonathan Le Roux, Hirokazu Kameoka, Nobutaka Ono, Shigeki Sagayama, 
 | "Fast Signal Reconstruction from Magnitude STFT Spectrogram Based on Spectrogram Consistency," 
@@ -60,33 +60,33 @@ Online LWS, "No future" LWS
 Installation
 ------------
 
-1) The easiest way to install `lws` is via `pip`:  
+1. The easiest way to install `lws` is via `pip`:  
 
-.. code-block:: bash
+        .. code-block:: bash
 
-    pip install lws
+            pip install lws
 
-2) To compile from source using cython (required if one modifies the code):  
+2. To compile from source using cython (required if one modifies the code):  
 
-.. code-block:: bash
+        .. code-block:: bash
 
-    cd python
-    LWS_USE_CYTHON=1 make 
+            cd python
+            LWS_USE_CYTHON=1 make 
 
-3) To compile from source using the pre-generated c source file (which was obtained with cython): 
+3. To compile from source using the pre-generated c source file (which was obtained with cython): 
 
-.. code-block:: bash
+        .. code-block:: bash
 
-    cd python
-    make
+            cd python
+            make
 
-4) Alternatively, one can first use cython to create a tarball, which can then be installed by pip:  
+4. Alternatively, one can first use cython to create a tarball, which can then be installed by pip:  
 
-.. code-block:: bash
+        .. code-block:: bash
 
-    cd python
-    make sdist
-    pip install dist/lws-1.0.tar.gz
+            cd python
+            make sdist
+            pip install dist/lws-1.0.tar.gz
 
 
 Usage
