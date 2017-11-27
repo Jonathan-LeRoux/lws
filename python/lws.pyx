@@ -104,7 +104,7 @@ def istft(spec,fshift,swin,opts={}):
     fftsize=opts['fftsize']
 
     if fftsize > len(swin):
-        swin = np.hstack([swin,np.zeros((fftsize-fsize,))])
+        swin = np.hstack([swin,np.zeros((fftsize-len(swin),))])
 
     T= fshift * (M-1) + fsize
     signal=np.zeros(T)
@@ -355,7 +355,7 @@ class lws(object):
                 awin = awin.flatten()
         if len(awin) % fshift != 0:
             raise ValueError('LWS requires that the window shift divides the window length.')
-
+        
         self.awin = awin
         self.swin = synthwin(awin,fshift,swin=swin)
         self.fshift = fshift
@@ -390,6 +390,10 @@ class lws(object):
 
         self.stft_opts = {'perfectrec':True,'awin':self.awin,'fftsize':self.fsize}
         self.stft_opts.update(stft_opts)
+        
+        if (np.linalg.norm(awin - awin[::-1]) > 0) or (self.stft_opts['fftsize'] > self.fsize):
+            print('WARNING: It appears you are either zero-padding or using an analysis window that is not symmetric. The current code uses simplifications that rely on such symmetry, so the code may not behave properly. This will be fixed in a future version.')
+
 
     def get_consistency(self,S):
         return get_consistency(S,self.fsize,self.fshift,self.awin,self.swin,self.stft_opts)

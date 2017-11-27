@@ -3,6 +3,8 @@ Fast spectrogram phase recovery using Local Weighted Sums (LWS)
 
 Author: Jonathan Le Roux -- 2008-2017
 
+[![PyPI version](https://badge.fury.io/py/lws.svg)](https://badge.fury.io/py/lws)
+
 The LWS software includes the following files:
 
     readme.txt                   # this file

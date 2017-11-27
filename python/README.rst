@@ -5,6 +5,9 @@ LWS
 
 Author: Jonathan Le Roux -- 2008-2017
 
+.. image:: https://badge.fury.io/py/lws.svg
+    :target: https://badge.fury.io/py/lws
+
 | LWS is a C/C++ library for which this package is a Python wrapper.
 | A Matlab/Mex wrapper is also available.
 
