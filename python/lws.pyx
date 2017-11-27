@@ -391,7 +391,7 @@ class lws(object):
         self.stft_opts = {'perfectrec':True,'awin':self.awin,'fftsize':self.fsize}
         self.stft_opts.update(stft_opts)
         
-        if (np.linalg.norm(awin - awin[::-1]) > 0) or (self.stft_opts['fftsize'] > self.fsize):
+        if (not np.allclose(awin, awin[::-1])) or (self.stft_opts['fftsize'] > self.fsize):
             print('WARNING: It appears you are either zero-padding or using an analysis window that is not symmetric. The current code uses simplifications that rely on such symmetry, so the code may not behave properly. This will be fixed in a future version.')
 
 
