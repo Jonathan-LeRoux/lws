@@ -37,7 +37,7 @@ def synthwin(awin,fshift,swin=None):
     return swin
 
 
-def stft(x,fsize,fshift,awin,opts={}):
+def stft(x,fsize,fshift,awin,fftsize=None,perfectrec=False):
     # STFT with a fixed frame shift
     # Assumes that the frame shift is an integer ratio of the frame size for simplicity
 
@@ -46,13 +46,12 @@ def stft(x,fsize,fshift,awin,opts={}):
     if fsize % fshift != 0:
         raise ValueError('Frame shift should be integer ratio of frame size.')
 
-    if  opts.get('fftsize',None) is None:
-        opts['fftsize']=fsize
-    fftsize=opts['fftsize']
-    if	fftsize % 2 ==1:
+    if fftsize is None:
+        fftsize = fsize
+    if fftsize % 2 ==1:
         raise ValueError('Odd ffts not supported.')
 
-    if opts.get('perfectrec',False) is True:
+    if perfectrec is True:
         pad = np.zeros((fsize - fshift,))
         x = np.hstack((pad, x, pad))
 
@@ -73,7 +72,7 @@ def stft(x,fsize,fshift,awin,opts={}):
     return spec
 
 
-def istft(spec,fshift,swin,opts={}):
+def istft(spec,fshift,swin,awin=None,fftsize=None,perfectrec=False):
     # iSTFT with a fixed frame shift
     # Assumes that the frame shift is an integer ratio of the frame size for simplicity
 
@@ -88,20 +87,19 @@ def istft(spec,fshift,swin,opts={}):
     if fsize % fshift != 0:
         raise ValueError('Frame shift should be integer ratio of frame size.')
     
-    if opts.get('awin',None) is None:
+    if awin is None:
         if not len(swin):
-            opts['awin']=np.sqrt(hann(fsize,symmetric=True,use_offset=False) *2*fshift/fsize)
-            swin = opts['awin'] 
+            awin=np.sqrt(hann(fsize,symmetric=True,use_offset=False) *2*fshift/fsize)
+            swin = awin
         else:
-            opts['awin']=swin
+            awin=swin
     else:
         if not 'swin' in locals() or not len(swin):
-            swin = opts['awin']
-    swin = synthwin(opts['awin'],fshift,swin)
+            swin = awin
+    swin = synthwin(awin,fshift,swin)
 
-    if  opts.get('fftsize',None) is None:
-        opts['fftsize']=fsize
-    fftsize=opts['fftsize']
+    if fftsize is None:
+        fftsize = fsize
 
     if fftsize > len(swin):
         swin = np.hstack([swin,np.zeros((fftsize-len(swin),))])
@@ -118,15 +116,15 @@ def istft(spec,fshift,swin,opts={}):
         iframe= iframe[0:fsize]
         signal[fshift*s+x_ran]+= iframe * np.squeeze(swin)
 
-    if opts.get('perfectrec',False) is True:
+    if perfectrec is True:
         signal = signal[(fsize-fshift):(T-(fsize-fshift))]
 
     return signal
 
 
-def get_consistency(S,fsize,fshift,awin,swin,opts={}):
+def get_consistency(S,fsize,fshift,awin,swin,perfectrec=False):
     # Compute the consistency
-    tmp = stft(istft(S,fshift,swin,opts),fsize,fshift,awin,opts)
+    tmp = stft(istft(S,fshift,swin,awin=awin,perfectrec=perfectrec),fsize,fshift,awin,perfectrec=perfectrec)
     return 20 * np.log10(np.linalg.norm(S)/np.linalg.norm(tmp-S))
 
 def extspec(S, L, Q):
@@ -339,7 +337,7 @@ class lws(object):
                  nofuture_iterations = 0, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
                  online_iterations = 0, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
                  batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
-                 symmetric_win = True, mode= None, stft_opts = {}):
+                 symmetric_win = True, mode= None, fftsize=None, perfectrec=True):
         if isinstance(awin_or_fsize, ( int, long ) ):
             if (awin_or_fsize % fshift == 0): 
                 # a frame size was passed in, build default window
@@ -356,10 +354,18 @@ class lws(object):
         if len(awin) % fshift != 0:
             raise ValueError('LWS requires that the window shift divides the window length.')
         
+        if fftsize > len(awin):
+            if (fftsize - len(awin)) % 2 != 0:
+                raise ValueError('The zero-padding should add even length to the original window.')
+            print('Zero-padding symmetrically around the original window.')
+            pad = np.zeros((fftsize - len(awin)) // 2)
+            awin = np.hstack((pad,awin,pad))
+        
         self.awin = awin
         self.swin = synthwin(awin,fshift,swin=swin)
         self.fshift = fshift
         self.fsize = len(awin)
+        self.perfectrec = perfectrec
         self.L = L
         self.Q = np.int(self.fsize/self.fshift)
         self.W = create_weights(self.awin,self.swin,self.fshift,self.L)
@@ -388,23 +394,21 @@ class lws(object):
         self.nofuture_beta  = nofuture_beta
         self.nofuture_gamma = nofuture_gamma
 
-        self.stft_opts = {'perfectrec':True,'awin':self.awin,'fftsize':self.fsize}
-        self.stft_opts.update(stft_opts)
         
-        if (not np.allclose(awin, awin[::-1])) or (self.stft_opts['fftsize'] > self.fsize):
-            print('WARNING: It appears you are either zero-padding or using an analysis window that is not symmetric. The current code uses simplifications that rely on such symmetry, so the code may not behave properly. This will be fixed in a future version.')
+        if (not np.allclose(awin, awin[::-1])):
+            print('WARNING: It appears you are using an analysis window that is not symmetric. The current code uses simplifications that rely on such symmetry, so the code may not behave properly.')
 
 
     def get_consistency(self,S):
-        return get_consistency(S,self.fsize,self.fshift,self.awin,self.swin,self.stft_opts)
+        return get_consistency(S,self.fsize,self.fshift,self.awin,self.swin,perfectrec=self.perfectrec)
 
 
     def stft(self,S):
-        return stft(S,self.fsize,self.fshift,self.awin,self.stft_opts)
+        return stft(S,self.fsize,self.fshift,self.awin,perfectrec=self.perfectrec)
 
 
     def istft(self,S):
-        return istft(S,self.fshift,self.swin,self.stft_opts)
+        return istft(S,self.fshift,self.swin,awin=self.awin)
 
 
     def nofuture_lws(self,S,iterations=None,thresholds=None):
