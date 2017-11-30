@@ -115,9 +115,9 @@ Options
               nofuture_iterations = 0, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
               online_iterations = 0, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
               batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
-              symmetric_win = True, mode= None, stft_opts = {})
+              symmetric_win = True, mode= None, fftsize=None, perfectrec=True)
 
-* ``awin_or_fsize``: either the analysis window, or a window length (in which case the sqrt(hann) window is used)
+* ``awin_or_fsize``: either the analysis window, or a window length (in which case the sqrt(hann) window is used); the analysis window should be symmetric for the computations to be correct.
 * ``fshift``: window shift
 * ``L``: approximation order in the phase reconstruction algorithm, 5 should be good.
 * ``swin``: synthesis window (if None, it gets computed from the analysis window for perfect reconstruction)
@@ -125,7 +125,8 @@ Options
 * ``xxx_iterations``, ``xxx_alpha``, ``xxx_beta``, ``xxx_gamma``: number of iterations of algorithm xxx (where xxx is one of ``nofuture``, ``online``, or ``batch``), and parameters alpha/beta/gamma of the decreasing sparsity curve that is used to determine which bins get updated at each iteration. Any bin with magnitude larger than a given threshold is updated, others are ignored (``thresholds = alpha * np.exp(- beta * np.arange(iterations)**gamma)``)
 * ``symmetric_win``: determines whether to use a symmetric hann window or not
 * ``mode``: ``None``, ``'speech'``, or ``'music'``. This sets default numbers of iterations of each algorithm that seem to be good for speech and music signals. Disclaimer: your mileage may vary.
-* ``stft_opts``: ``{'perfectrec':True,'fftsize':self.fsize}``. ``perfectrec``: whether to pad with zeros on each side to ensure perfect reconstruction at the boundaries too. ``fftsize``: can be set longer than frame size to do 0-padding in the FFT.
+* ``fftsize``: can be set longer than frame size to do 0-padding in the FFT. Note that 0-padding will be done symmetrically on the left and right of the window to enforce symmetry in the analysis window.
+* ``perfectrec``: whether to pad with zeros on each side to ensure perfect reconstruction at the boundaries too. 
 
 Three steps are implemented, and they can be turned on/off independently by appropriately setting the corresponding number of iterations:
 
