@@ -131,7 +131,7 @@ Three steps are implemented, and they can be turned on/off independently:
     ```sh
     cd python
     make sdist
-    pip install dist/lws-1.0.tar.gz
+    pip install dist/lws-1.1.tar.gz
     ```
     
 For usage, please refer to `python/readme.rst`.

@@ -354,6 +354,9 @@ class lws(object):
         if len(awin) % fshift != 0:
             raise ValueError('LWS requires that the window shift divides the window length.')
         
+        if fftsize is None:
+            fftsize = len(awin)
+
         if fftsize > len(awin):
             if (fftsize - len(awin)) % 2 != 0:
                 raise ValueError('The zero-padding should add even length to the original window.')
