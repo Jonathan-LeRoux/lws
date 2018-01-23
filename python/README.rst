@@ -91,6 +91,7 @@ Installation
             make sdist
             pip install dist/lws-1.2.tar.gz
 
+**Note:** On Windows, the Microsoft Visual C++ Compiler for your version of Python needs to be installed. See `this page<https://wiki.python.org/moin/WindowsCompilers>`_ for more details.
 
 Usage
 -----
