@@ -3,7 +3,7 @@ LWS
 
 **Fast spectrogram phase recovery using Local Weighted Sums (LWS)**
 
-Author: Jonathan Le Roux -- 2008-2017
+Author: Jonathan Le Roux -- 2008-2018
 
 .. image:: https://badge.fury.io/py/lws.svg
     :target: https://badge.fury.io/py/lws
@@ -14,7 +14,7 @@ Author: Jonathan Le Roux -- 2008-2017
 License
 -------
 
-| Copyright (C) 2008-2017 Jonathan Le Roux
+| Copyright (C) 2008-2018 Jonathan Le Roux
 | Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
 Reference
@@ -89,7 +89,7 @@ Installation
 
             cd python
             make sdist
-            pip install dist/lws-1.0.tar.gz
+            pip install dist/lws-1.2.tar.gz
 
 
 Usage
