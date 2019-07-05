@@ -58,59 +58,59 @@ Installation:
 
 1) The easiest way to install `lws` is via `pip`:
 
-    ```sh
-    pip install lws
-    ```
+```sh
+pip install lws
+```
 
 2) To compile from source using cython (required if one modifies the code):
 
-    ```sh
-    cd python
-    LWS_USE_CYTHON=1 make
-    ```
+```sh
+cd python
+LWS_USE_CYTHON=1 make
+```
 
 3) To compile from source using the pre-generated c source file (which was obtained with cython):
 
-    ```sh
-    cd python
-    make
-    ```
+```sh
+cd python
+make
+```
     
 4) Alternatively, one can first use cython to create a tarball, which can then be installed with pip:
 
-    ```sh
-    cd python
-    make sdist
-    pip install dist/lws-1.2.1.tar.gz
-    ```
+```sh
+cd python
+make sdist
+pip install dist/lws-1.2.1.tar.gz
+```
 
 **Note:** On Windows, the Microsoft Visual C++ Compiler for your version of Python needs to be installed. See [this page](https://wiki.python.org/moin/WindowsCompilers) for more details.
 
 Usage
 -----
 
-	```python
-    import lws
-    import numpy as np
-    
-    lws_processor=lws.lws(512,128, mode="speech") # 512: window length; 128: window shift
-    X = lws_processor.stft(x) # where x is a single-channel waveform
-    X0 = np.abs(X) # Magnitude spectrogram
-    print('{:6}: {:5.2f} dB'.format('Abs(X)', lws_processor.get_consistency(X0)))
-    X1 = lws_processor.run_lws(X0) # reconstruction from magnitude (in general, one can reconstruct from an initial complex spectrogram)
-    print('{:6}: {:5.2f} dB'.format('LWS', lws_processor.get_consistency(X1)))
-	```
+```python
+import lws
+import numpy as np
+
+lws_processor=lws.lws(512,128, mode="speech") # 512: window length; 128: window shift
+X = lws_processor.stft(x) # where x is a single-channel waveform
+X0 = np.abs(X) # Magnitude spectrogram
+print('{:6}: {:5.2f} dB'.format('Abs(X)', lws_processor.get_consistency(X0)))
+X1 = lws_processor.run_lws(X0) # reconstruction from magnitude (in general, one can reconstruct from an initial complex spectrogram)
+print('{:6}: {:5.2f} dB'.format('LWS', lws_processor.get_consistency(X1)))
+```
 
 Options
 -------
 
-	```python
-    lws_processor=lws.lws(awin_or_fsize, fshift, L = 5, swin = None, look_ahead = 3,
-              nofuture_iterations = 0, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
-              online_iterations = 0, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
-              batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
-              symmetric_win = True, mode= None, fftsize=None, perfectrec=True)
-	```
+```python
+lws_processor=lws.lws(awin_or_fsize, fshift, L = 5, swin = None, look_ahead = 3,
+		  nofuture_iterations = 0, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
+		  online_iterations = 0, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
+		  batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
+		  symmetric_win = True, mode= None, fftsize=None, perfectrec=True)
+```
 
 * `awin_or_fsize`: either the analysis window, or a window length (in which case the sqrt(hann) window is used); the analysis window should be symmetric for the computations to be correct.
 * `fshift`: window shift
