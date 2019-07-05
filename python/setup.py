@@ -2,7 +2,36 @@ from setuptools import setup, Extension
 import numpy as np
 from codecs import open
 import os
+import sys
 
+# Fix below for Mac from https://github.com/pandas-dev/pandas/pull/24274
+# For mac, ensure extensions are built for macos 10.9 when compiling on a
+# 10.9 system or above, overriding distuitls behaviour which is to target
+# the version that python was built for. This may be overridden by setting
+# MACOSX_DEPLOYMENT_TARGET before calling setup.py
+if sys.platform == 'darwin':
+    import platform
+    from distutils.sysconfig import get_config_var
+    from distutils.version import LooseVersion
+    if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
+        current_system = LooseVersion(platform.mac_ver()[0])
+        python_target = LooseVersion(
+            get_config_var('MACOSX_DEPLOYMENT_TARGET'))
+        if python_target < '10.9' and current_system >= '10.9':
+            os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
+
+
+# Get version number from single source, c.f., https://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
+import re
+VERSIONFILE = "_version.py"
+verstrline = open(VERSIONFILE, "rt").read()
+VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
+mo = re.search(VSRE, verstrline, re.M)
+if mo:
+        verstr = mo.group(1)
+else:
+        raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+            
 # This file is largely taken from https://github.com/Martinsos/edlib/blob/a77e81678abd9392f1e13ec8585831721a1f354a/bindings/python/setup.py
 
 # Build directly from cython source file(s) if user wants so (probably for some experiments).
@@ -30,9 +59,9 @@ setup(
     name = "lws",
     description = "Fast spectrogram phase reconstruction using Local Weighted Sums",
     long_description = long_description,
-    version = "1.2",
+    version = verstr,
     url = "https://github.com/Jonathan-LeRoux/lws",
-    download_url = "https://github.com/Jonathan-LeRoux/lws/archive/1.2.tar.gz",
+    download_url = "https://github.com/Jonathan-LeRoux/lws/archive/{}.tar.gz".format(verstr),
     author = "Jonathan Le Roux",
     author_email = "leroux@merl.com",
     license = "Apache 2.0",
@@ -53,5 +82,6 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
     ]
 )

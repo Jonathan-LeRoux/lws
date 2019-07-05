@@ -3,6 +3,7 @@ cimport lwslib
 cimport numpy as np
 import numpy as np
 import scipy
+from _version import __version__
 
 def hann(n,symmetric=True,use_offset = False):
     if symmetric:

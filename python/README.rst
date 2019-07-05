@@ -89,7 +89,7 @@ Installation
 
             cd python
             make sdist
-            pip install dist/lws-1.2.tar.gz
+            pip install dist/lws-1.2.1.tar.gz
 
 **Note:** On Windows, the Microsoft Visual C++ Compiler for your version of Python needs to be installed. See `this page<https://wiki.python.org/moin/WindowsCompilers>`_ for more details.
 
@@ -103,7 +103,7 @@ Usage
     lws_processor=lws.lws(512,128, mode="speech") # 512: window length; 128: window shift
     X = lws_processor.stft(x) # where x is a single-channel waveform
     X0 = np.abs(X) # Magnitude spectrogram
-    print('{:6}: {:5.2f} dB'.format('Abs(X)', lws_processor.get_consistency(X0))
+    print('{:6}: {:5.2f} dB'.format('Abs(X)', lws_processor.get_consistency(X0)))
     X1 = lws_processor.run_lws(X0) # reconstruction from magnitude (in general, one can reconstruct from an initial complex spectrogram)
     print('{:6}: {:5.2f} dB'.format('LWS', lws_processor.get_consistency(X1)))
 
