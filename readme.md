@@ -1,13 +1,13 @@
 Fast spectrogram phase recovery using Local Weighted Sums (LWS)
 ===============================================================
 
-Author: Jonathan Le Roux -- 2008-2018
+Author: Jonathan Le Roux -- 2008-2019
 
 [![PyPI version](https://badge.fury.io/py/lws.svg)](https://badge.fury.io/py/lws)
 
 The LWS software includes the following files:
 
-    readme.txt                   # this file
+    readme.md                    # this file
     LICENSE.txt                  # Apache 2 license file
     lwslib/                      # C/C++ library
       -lwslib.cpp                  # core functions
@@ -25,7 +25,8 @@ The LWS software includes the following files:
       -LICENSE.txt                 # Apache 2 license file
       -MANIFEST.in                 # Manifest file specifying files to be distributed with the Python module
       -Makefile                    # Makefile to manage the Python module compilation and building process
-      -README.rst                  # Readme file for the Python module
+      -README.md                   # Readme file for the Python module
+      -_version.py                 # Version file
       -lws.pyx                     # Cython source file
       -lwslib.pxd                  # Cython header file
       -setup.py                    # Main module distribution file
@@ -33,7 +34,7 @@ The LWS software includes the following files:
 License
 -------
 
-Copyright (C) 2008-2018 Jonathan Le Roux
+Copyright (C) 2008-2019 Jonathan Le Roux
 Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
 Citing this code
@@ -136,4 +137,4 @@ Three steps are implemented, and they can be turned on/off independently:
 
 **Note:** On Windows, the Microsoft Visual C++ Compiler for your version of Python needs to be installed. See [this page](https://wiki.python.org/moin/WindowsCompilers) for more details.
 
-For usage, please refer to `python/readme.rst`.
+For usage, please refer to `python/README.md`.

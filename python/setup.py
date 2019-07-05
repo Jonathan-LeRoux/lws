@@ -51,7 +51,7 @@ else:
 long_description = ""
 # Load README into long description.
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
@@ -59,6 +59,7 @@ setup(
     name = "lws",
     description = "Fast spectrogram phase reconstruction using Local Weighted Sums",
     long_description = long_description,
+    long_description_content_type = 'text/markdown',
     version = verstr,
     url = "https://github.com/Jonathan-LeRoux/lws",
     download_url = "https://github.com/Jonathan-LeRoux/lws/archive/{}.tar.gz".format(verstr),
