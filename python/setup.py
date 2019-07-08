@@ -69,7 +69,7 @@ setup(
     keywords = ['phase', 'reconstruction', 'stft', 'short-term Fourier Transform', 'spectrogram'],
     # Build instructions
     ext_modules = [Extension("lws",
-                             sources=[lws_module_src, "lwslib/lwslib.cpp", VERSIONFILE],
+                             sources=[lws_module_src, "lwslib/lwslib.cpp"],
                              include_dirs=["lwslib/", np.get_include()],
                              language="c++",
                              extra_compile_args=["-O3"])],
