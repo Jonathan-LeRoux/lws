@@ -24,5 +24,5 @@ publish: clean sdist
 
 clean:
 	rm -rf lwslib dist lws.egg-info build
-	rm -f lws.cpp *.bycython.* lws.*.so
+	rm -f lws.cpp *.bycython.* lws*.so
 #######################################

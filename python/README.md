@@ -81,7 +81,7 @@ make
 ```sh
 cd python
 make sdist
-pip install dist/lws-1.2.3.tar.gz
+pip install dist/lws-1.2.4.tar.gz
 ```
 
 **Note:** On Windows, the Microsoft Visual C++ Compiler for your version of Python needs to be installed. See [this page](https://wiki.python.org/moin/WindowsCompilers) for more details.

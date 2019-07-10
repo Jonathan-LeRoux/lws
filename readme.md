@@ -26,7 +26,6 @@ The LWS software includes the following files:
       -MANIFEST.in                 # Manifest file specifying files to be distributed with the Python module
       -Makefile                    # Makefile to manage the Python module compilation and building process
       -README.md                   # Readme file for the Python module
-      -_version.py                 # Version file
       -lws.pyx                     # Cython source file
       -lwslib.pxd                  # Cython header file
       -setup.py                    # Main module distribution file
@@ -132,7 +131,7 @@ Three steps are implemented, and they can be turned on/off independently:
     ```sh
     cd python
     make sdist
-    pip install dist/lws-1.2.3.tar.gz
+    pip install dist/lws-1.2.4.tar.gz
     ```
 
 **Note:** On Windows, the Microsoft Visual C++ Compiler for your version of Python needs to be installed. See [this page](https://wiki.python.org/moin/WindowsCompilers) for more details.

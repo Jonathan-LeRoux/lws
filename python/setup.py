@@ -23,7 +23,7 @@ if sys.platform == 'darwin':
 
 # Get version number from single source, c.f., https://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package
 import re
-VERSIONFILE = "_version.py"
+VERSIONFILE = "lws.pyx"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)
