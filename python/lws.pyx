@@ -5,7 +5,7 @@ cimport numpy as np
 import numpy as np
 import scipy
 
-__version__ = "1.2.4"
+__version__ = "1.2.5"
 
 def hann(n,symmetric=True,use_offset = False):
     if symmetric:
@@ -42,12 +42,9 @@ def synthwin(awin,fshift,swin=None):
 
 def stft(x,fsize,fshift,awin,fftsize=None,perfectrec=False):
     # STFT with a fixed frame shift
-    # Assumes that the frame shift is an integer ratio of the frame size for simplicity
 
     if len(np.shape(x)) != 1: # no multi-channel input
         raise ValueError('We only deal with single channel signals here')
-    if fsize % fshift != 0:
-        raise ValueError('Frame shift should be integer ratio of frame size.')
 
     if fftsize is None:
         fftsize = fsize
@@ -55,13 +52,31 @@ def stft(x,fsize,fshift,awin,fftsize=None,perfectrec=False):
         raise ValueError('Odd ffts not supported.')
 
     if perfectrec is True:
-        pad = np.zeros((fsize - fshift,))
-        x = np.hstack((pad, x, pad))
-
-    if len(x)%fshift == 0:
-        M = (len(x)-fsize)//fshift + 1
+        # pad beginning so that original signal starts at a frame start
+        residual_size = fsize % fshift
+        if residual_size == 0:
+            pre_pad = np.zeros((fsize - fshift,))
+        else:
+            pre_pad = np.zeros((fsize - residual_size,))
+        # pad end just enough to complete the last frame including original signal;
+        # the next frame, if added, would not contain any signal
+        if len(x) % fshift == 0:
+            post_pad = np.zeros((0,))
+        else:
+            post_pad = np.zeros((fshift - len(x) % fshift,))
+        x = np.hstack((pre_pad, x, post_pad))
+        # after padding, len(x) is a multiple of fshift
+        M = len(x)//fshift
     else:
-        M = (len(x)-fsize)//fshift + 2
+        # Do not care about all signal being in regions where frames give complete overlap
+        if (len(x)-fsize) % fshift == 0:
+            post_pad = np.zeros((0,))
+        else:
+            post_pad = np.zeros((fshift - (len(x)-fsize) % fshift,))
+        x = np.hstack((x, post_pad))
+        M = (len(x)-fsize)//fshift + 1
+
+            
     frame_starts = fshift * np.arange(M)    
     T=len(x)
     x = np.hstack((x, np.zeros(((M-1)*fshift + fsize - T,))))
@@ -77,7 +92,6 @@ def stft(x,fsize,fshift,awin,fftsize=None,perfectrec=False):
 
 def istft(spec,fshift,swin,awin=None,fftsize=None,perfectrec=False):
     # iSTFT with a fixed frame shift
-    # Assumes that the frame shift is an integer ratio of the frame size for simplicity
 
     if len(np.shape(spec)) != 2: # no multi-channel input
         raise ValueError('We only deal with single channel signals here')
@@ -87,19 +101,11 @@ def istft(spec,fshift,swin,awin=None,fftsize=None,perfectrec=False):
         raise ValueError('We expect the spectrogram to only have non-negative frequencies')
 
     fsize = 2*(N-1)
-    if fsize % fshift != 0:
-        raise ValueError('Frame shift should be integer ratio of frame size.')
     
-    if awin is None:
-        if not len(swin):
-            awin=np.sqrt(hann(fsize,symmetric=True,use_offset=False) *2*fshift/fsize)
-            swin = awin
-        else:
-            awin=swin
-    else:
-        if not 'swin' in locals() or not len(swin):
-            swin = awin
-    swin = synthwin(awin,fshift,swin)
+    if awin is not None:
+        # if an analysis window is passed, we assume the user wants us to normalize
+        # the synthesis window accordingly. Otherwise, we trust the user.
+        swin = synthwin(awin, fshift, swin=swin)
 
     if fftsize is None:
         fftsize = fsize
@@ -120,14 +126,21 @@ def istft(spec,fshift,swin,awin=None,fftsize=None,perfectrec=False):
         signal[fshift*s+x_ran]+= iframe * np.squeeze(swin)
 
     if perfectrec is True:
-        signal = signal[(fsize-fshift):(T-(fsize-fshift))]
+        residual_size = fsize % fshift
+        if residual_size == 0:
+            pre_pad_length = fsize - fshift
+        else:
+            pre_pad_length = fsize - residual_size
+        
+        signal = signal[pre_pad_length:(fshift-fsize)]
 
     return signal
 
 
 def get_consistency(S,fsize,fshift,awin,swin,perfectrec=False):
     # Compute the consistency
-    tmp = stft(istft(S,fshift,swin,awin=awin,perfectrec=perfectrec),fsize,fshift,awin,perfectrec=perfectrec)
+    # The user needs to make sure awin-swin are a perfect reconstruction pair, it is not enforced
+    tmp = stft(istft(S,fshift,swin,perfectrec=perfectrec),fsize,fshift,awin,perfectrec=perfectrec)
     return 20 * np.log10(np.linalg.norm(S)/np.linalg.norm(tmp-S))
 
 def extspec(S, L, Q):
@@ -189,6 +202,10 @@ def get_thresholds(iterations,alpha,beta,gamma):
 
 def batch_lws(S,W,thresholds):
     # Batch mode LWS phase reconstruction
+
+    if S.dtype != np.complex128:
+        S = S.astype(np.complex128)
+    
     cdef int L = W.shape[2] - 1
     cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
@@ -235,6 +252,9 @@ def batch_lws(S,W,thresholds):
 def nofuture_lws(S,W,thresholds):
     # Batch mode LWS phase reconstruction only considering past frames.
     # Typically only use for initialization.
+    
+    if S.dtype != np.complex128:
+        S = S.astype(np.complex128)
     
     cdef int L = W.shape[2] - 1
     cdef int Q = W.shape[0]
@@ -287,6 +307,9 @@ def online_lws(S,
                int LA):
     # Online mode LWS phase reconstruction
     
+    if S.dtype != np.complex128:
+        S = S.astype(np.complex128)
+
     cdef int L = W.shape[2] - 1
     cdef int Q = W.shape[0]
     cdef int iterations = len(thresholds)
@@ -342,11 +365,9 @@ class lws(object):
                  batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
                  symmetric_win = True, mode= None, fftsize=None, perfectrec=True):
         if isinstance(awin_or_fsize, ( int, long ) ):
-            if (awin_or_fsize % fshift == 0): 
-                # a frame size was passed in, build default window
-                awin = np.sqrt(hann(awin_or_fsize,symmetric=symmetric_win,use_offset=False) *2*fshift/awin_or_fsize)
-            else:
-                raise ValueError('LWS requires that the window shift divides the window length.')            
+                # a frame size was passed in, build default perfect-reconstruction window
+                awin = np.sqrt(hann(awin_or_fsize,symmetric=symmetric_win,use_offset=False))
+                awin = awin / np.sqrt( awin * synthwin(awin,fshift) )
         else:
             awin = awin_or_fsize
         if awin.ndim > 1:
@@ -354,8 +375,6 @@ class lws(object):
                 raise ValueError('The analysis window should be flat')
             else:
                 awin = awin.flatten()
-        if len(awin) % fshift != 0:
-            raise ValueError('LWS requires that the window shift divides the window length.')
         
         if fftsize is None:
             fftsize = len(awin)
@@ -363,11 +382,19 @@ class lws(object):
         if fftsize > len(awin):
             if (fftsize - len(awin)) % 2 != 0:
                 raise ValueError('The zero-padding should add even length to the original window.')
-            print('Zero-padding symmetrically around the original window.')
-            pad = np.zeros((fftsize - len(awin)) // 2)
+            pad_length = (fftsize - len(awin)) // 2
+            print('Zero-padding symmetrically around the original windows.\n'
+                  'WARNING: for code simplicity, a consequence is that the first/last '
+                  '{} samples of the signal will not be '.format(pad_length) + 
+                  'in the perfect reconstruction region.')
+            pad = np.zeros(pad_length)
             awin = np.hstack((pad,awin,pad))
+            if swin is not None:
+                swin = np.hstack((pad,swin,pad))
         
         self.awin = awin
+        if swin is not None:
+            print('Provided synthesis window is renormalized for perfect reconstruction.')
         self.swin = synthwin(awin,fshift,swin=swin)
         self.fshift = fshift
         self.fsize = len(awin)
@@ -402,7 +429,8 @@ class lws(object):
 
         
         if (not np.allclose(awin, awin[::-1])):
-            print('WARNING: It appears you are using an analysis window that is not symmetric. The current code uses simplifications that rely on such symmetry, so the code may not behave properly.')
+            print('WARNING: It appears you are using an analysis window that is not symmetric.\n'
+                  'The current code uses simplifications that rely on such symmetry, so the code may not behave properly.')
 
 
     def get_consistency(self,S):
@@ -414,7 +442,8 @@ class lws(object):
 
 
     def istft(self,S):
-        return istft(S,self.fshift,self.swin,awin=self.awin)
+        # we do not pass awin because swin was already renormalized for perfect reconstruction at initialization
+        return istft(S,self.fshift,self.swin,perfectrec=self.perfectrec)
 
 
     def nofuture_lws(self,S,iterations=None,thresholds=None):
