@@ -5,7 +5,7 @@ cimport numpy as np
 import numpy as np
 import scipy
 
-__version__ = "1.2.5"
+__version__ = "1.2.6"
 
 def hann(n,symmetric=True,use_offset = False):
     if symmetric:
@@ -367,7 +367,7 @@ class lws(object):
         if isinstance(awin_or_fsize, ( int, long ) ):
                 # a frame size was passed in, build default perfect-reconstruction window
                 awin = np.sqrt(hann(awin_or_fsize,symmetric=symmetric_win,use_offset=False))
-                awin = awin / np.sqrt( awin * synthwin(awin,fshift) )
+                awin = np.sqrt( awin * synthwin(awin,fshift) )
         else:
             awin = awin_or_fsize
         if awin.ndim > 1:
