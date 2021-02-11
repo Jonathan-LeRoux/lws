@@ -158,10 +158,12 @@ void mexFunction(int nlhs, mxArray *plhs[], /* Output variables */
         }
         
         int update_type = 2;
+        double Qfloat = (double) Q;
+        int use_summarized_weights = 1;
         // Perform the phase updates
         TF_RTISI_LA(ExtSr, ExtSi, pWr, pWi, pWr_ai, pWi_ai, pWr_af, pWi_af, 
                 pWflag, pWflag_ai, pWflag_af,
-                AmpSpec, iterations, LA, Nreal, T, L, Q, thresholds, update_type);
+                AmpSpec, iterations, LA, Nreal, T, L, Q, Qfloat, use_summarized_weights, thresholds, update_type);
         
         // Copy back the non-redundant part of the spectrogram into the output
         s_out = mxCreateDoubleMatrix(0, 0, mxCOMPLEX);

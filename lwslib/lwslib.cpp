@@ -1,7 +1,7 @@
 /* LWSLIB.CPP Core functions for constructing consistent phase 
  *                 using Local Weighted Sums (LWS)
  * 
- * Copyright (C) 2008-2018 Jonathan Le Roux
+ * Copyright (C) 2008-2021 Jonathan Le Roux
  * Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0) 
  */
 
@@ -279,7 +279,7 @@ void LWSQ4(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *
     }
 }
 
-// General case, slightly slower for Q=2 or Q=4
+// General case for frame shift dividing frame length, slightly slower for Q=2 or Q=4
 void LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, int Q, double threshold) {
     int n, m, k, r, mod, modneg;
     int Np=Nreal+2*L;
@@ -372,6 +372,99 @@ void LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double
     }
 }
 
+// General case for frame shift *not* dividing frame length
+void LWSfractionalQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, int Q, double threshold) {
+    int n, m, k, r, mod, modneg;
+    int Np=Nreal+2*L;
+    int N = 2* (Nreal - 1);
+    double tempr, tempi, abstemp, absspec;
+    double ar, ai, br, bi, cr, ci;
+
+    int Naux=Nreal+L-1;
+
+    for(m=Q-1;m<(M+Q-1);m++){
+        for(n=L;n<Naux+1;n++){
+
+            // only update bins whose magnitude is above threshold
+            absspec = AmpSpec[m*Np+n];
+            if(absspec>threshold){
+                tempr=0.;
+                tempi=0.;
+                mod = (n-L)*Q*(L+1);
+                // contribution of n+/-k for center frame m
+                for(k=1;k<L+1;k++){
+                    if (w_flag[mod+k]) {
+                        ar = wr[mod+k];
+                        ai = wi[mod+k];
+                        br = Sr[m*Np+n-k];
+                        bi = Si[m*Np+n-k];
+                        cr = Sr[m*Np+n+k];
+                        ci = Si[m*Np+n+k];
+                        tempr+= ar*(br+cr)-ai*(bi-ci);
+                        tempi+= ar*(bi+ci)+ai*(br-cr);
+                    }
+                }
+
+                modneg = (N-(n-L))*Q*(L+1);
+                // contribution of frames m+/-r
+                for(r=1;r<Q;r++){
+                    int u = r*(L+1);
+                    int im = (m-r)*Np + n;
+                    int ip = (m+r)*Np + n;
+                    // for frequency n
+                    if (w_flag[mod+u]) {
+                        ar = wr[mod+u];
+                        ai = wi[mod+u];
+                        br = Sr[im];
+                        bi = Si[im];
+                        cr = Sr[ip];
+                        ci = Si[ip];
+                        tempr+= ar*(br+cr)-ai*(bi-ci);
+                        tempi+= ar*(bi+ci)+ai*(br-cr);
+                    }
+                    // for frequencies n+/-k
+                    for(k=1;k<L+1;k++){
+                        if (w_flag[mod+u+k]) { // +/-q, p
+                            ar = wr[mod+u+k];
+                            ai = wi[mod+u+k];
+                            br = Sr[im-k];
+                            bi = Si[im-k];
+                            cr = Sr[ip-k];
+                            ci = Si[ip-k];
+                            tempr+= ar*(br+cr)-ai*(bi-ci);
+                            tempi+= ar*(bi+ci)+ai*(br-cr);
+                        }
+                        if (w_flag[modneg+u+k]) { // +/-q, -p
+                            ar = wr[modneg+u+k];
+                            ai = wi[modneg+u+k];
+                            br = Sr[ip+k];
+                            bi = Si[ip+k];
+                            cr = Sr[im+k];
+                            ci = Si[im+k];
+                            tempr+= ar*(br+cr)-ai*(bi-ci);
+                            tempi+= ar*(bi+ci)+ai*(br-cr);
+                        }
+                    }
+                }
+
+                abstemp = sqrt(pow(tempr, 2.)+pow(tempi, 2.));
+                if((abstemp>0)){
+                    // update the phase
+                    Sr[m*Np+n]= tempr*absspec/abstemp;
+                    Si[m*Np+n]= tempi*absspec/abstemp;
+                    // propagate changes in the extended regions
+                    if((n>=L+1)&&(n<2*L+1)){
+                        Sr[m*Np+2*L-n]= Sr[m*Np+n];
+                        Si[m*Np+2*L-n]= -Si[m*Np+n];
+                    }else if((n>=Nreal-1)&&(n<Naux)){
+                        Sr[m*Np+2*Naux-n] = Sr[m*Np+n];
+                        Si[m*Np+2*Naux-n] = -Si[m*Np+n];
+                    }
+                }
+            }
+        }
+    }
+}
 
 /***************************************/
 /* Functions used by nofuture_lws.cpp  */
@@ -523,7 +616,7 @@ void NoFuture_LWSQ4(double *Sr, double *Si, double *wr, double *wi, int *w_flag,
     }
 }
 
-// General case, slightly slower for Q=2 or Q=4
+// General case for frame shift dividing frame length, slightly slower for Q=2 or Q=4
 void NoFuture_LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, int Q, double threshold) {
     int n, m, k, r, mod, modneg;
     int Np=Nreal+2*L;
@@ -577,6 +670,80 @@ void NoFuture_LWSanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_fla
                     }
                 }
                 
+                abstemp = sqrt(pow(tempr, 2.)+pow(tempi, 2.));
+                if((abstemp>0)){
+                    // update the phase
+                    Sr[m*Np+n]= tempr*absspec/abstemp;
+                    Si[m*Np+n]= tempi*absspec/abstemp;
+                    // propagate changes in the extended regions
+                    if((n>=L+1)&&(n<2*L+1)){
+                        Sr[m*Np+2*L-n]= Sr[m*Np+n];
+                        Si[m*Np+2*L-n]= -Si[m*Np+n];
+                    }else if((n>=Nreal-1)&&(n<Naux)){
+                        Sr[m*Np+2*Naux-n] = Sr[m*Np+n];
+                        Si[m*Np+2*Naux-n] = -Si[m*Np+n];
+                    }
+                }
+            }
+        }
+    }
+}
+
+// General case for frame shift *not* dividing frame length
+void NoFuture_LWSfractionalQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int L, int Q, double threshold) {
+    int n, m, k, r, mod, modneg;
+    int Np=Nreal+2*L;
+    int N = 2* (Nreal - 1);
+    double tempr, tempi, abstemp, absspec;
+    double ar, ai, br, bi, cr, ci;
+
+    int Naux=Nreal+L-1;
+
+    for(m=Q-1;m<(M+Q-1);m++){
+        for(n=L;n<Naux+1;n++){
+
+            // only update bins whose magnitude is above threshold
+            absspec = AmpSpec[m*Np+n];
+            if(absspec>threshold){
+                tempr=0.;
+                tempi=0.;
+                mod = (n-L)*Q*(L+1);
+                modneg = (N-(n-L))*Q*(L+1);
+
+                // contribution of frames m-r
+                for(r=1;r<Q;r++){
+                    int u = r*(L+1);
+                    int im = (m-r)*Np + n;
+                    // for frequency n
+                    if (w_flag[mod+u]) {
+                        ar = wr[mod+u];
+                        ai = wi[mod+u];
+                        br = Sr[im];
+                        bi = Si[im];
+                        tempr+= ar*(br)-ai*(bi);
+                        tempi+= ar*(bi)+ai*(br);
+                    }
+                    // for frequencies n+/-k
+                    for(k=1;k<L+1;k++){
+                        if (w_flag[mod+u+k]) {
+                            ar = wr[mod+u+k];
+                            ai = wi[mod+u+k];
+                            br = Sr[im-k];
+                            bi = Si[im-k];
+                            tempr+= ar*(br)-ai*(bi);
+                            tempi+= ar*(bi)+ai*(br);
+                        }
+                        if (w_flag[modneg+u+k]) {
+                            ar = wr[modneg+u+k];
+                            ai = wi[modneg+u+k];
+                            cr = Sr[im+k];
+                            ci = Si[im+k];
+                            tempr+= ar*(cr)+ai*(ci);
+                            tempi+= ar*(ci)-ai*(cr);
+                        }
+                    }
+                }
+
                 abstemp = sqrt(pow(tempr, 2.)+pow(tempi, 2.));
                 if((abstemp>0)){
                     // update the phase
@@ -958,7 +1125,7 @@ void Asym_UpdatePhaseQ4(double *Sr, double *Si, double *wr, double *wi, int *w_f
     }
 }
 
-// General case, slightly slower for Q=2 or Q=4
+// General case for frame shift dividing frame length, slightly slower for Q=2 or Q=4
 void Asym_UpdatePhaseanyQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int M0, int L, int Q, double threshold, int update)
 {
     int n,m,k,r,mod, modneg;
@@ -1105,10 +1272,158 @@ void Asym_UpdatePhaseanyQ(double *Sr, double *Si, double *wr, double *wi, int *w
     }
 }
 
+// General case for frame shift *not* dividing frame length
+void Asym_UpdatePhasefractionalQ(double *Sr, double *Si, double *wr, double *wi, int *w_flag, double *AmpSpec, int Nreal, int M, int M0, int L, int Q, double Qfloat, double threshold, int update)
+{
+    int n,m,k,r,mod, modneg;
+    int Np=Nreal+2*L;
+    int N = 2 * (Nreal - 1);
+    double tempr, tempi, abstemp, absspec;
+    double ar,ai,br,bi,cr,ci;
+
+    int Naux=Nreal+L-1;
+    int rframe=0; // indicates the last frame to use on the right
+    int cframe=0;
+
+
+    for(m=Q-1;m<(M+Q-1);m++){
+
+        rframe= M0+Q-m-1;
+        if(rframe>Q){
+            rframe=Q;
+        }
+        cframe=1;
+        if(rframe<1){
+            cframe=0;
+            rframe=1;
+        }
+
+        for(n=L;n<Naux+1;n++){
+            // only update bins whose magnitude is above threshold
+            absspec = AmpSpec[m*Np+n];
+            if(absspec>threshold){
+                tempr=0.;
+                tempi=0.;
+                mod = (n-L)*Q*(L+1);
+                modneg = (N-(n-L))*Q*(L+1);
+                if(cframe){
+                    if(update==1){
+                        tempr+=Sr[m*Np+n]/Qfloat;
+                        tempi+=Si[m*Np+n]/Qfloat;
+                    }
+                    for(k=1;k<L+1;k++){
+                        if (w_flag[mod+k]) {
+                            ar = wr[mod+k];
+                            ai = wi[mod+k];
+                            br = Sr[m*Np+n-k];
+                            bi = Si[m*Np+n-k];
+                            cr = Sr[m*Np+n+k];
+                            ci = Si[m*Np+n+k];
+                            tempr+= ar*(br+cr)-ai*(bi-ci);
+                            tempi+= ar*(bi+ci)+ai*(br-cr);
+                        }
+                    }
+                }
+
+                // contribution of frames m+/-r
+
+                for(r=1;r<rframe;r++){ // add frames  at both m+r and m-r (i.e., on left and right)
+                    int u = r*(L+1);
+                    int im = (m-r)*Np + n;
+                    int ip = (m+r)*Np + n;
+                    // for frequency n
+                    if (w_flag[mod+u]) {
+                        ar = wr[mod+u];
+                        ai = wi[mod+u];
+                        br = Sr[im];
+                        bi = Si[im];
+                        cr = Sr[ip];
+                        ci = Si[ip];
+                        tempr+= ar*(br+cr)-ai*(bi-ci);
+                        tempi+= ar*(bi+ci)+ai*(br-cr);
+                    }
+                    // for frequencies n+/-k
+                    for(k=1;k<L+1;k++){
+                        if (w_flag[mod+u+k]) {
+                            ar = wr[mod+u+k];
+                            ai = wi[mod+u+k];
+                            br = Sr[im-k];
+                            bi = Si[im-k];
+                            cr = Sr[ip-k];
+                            ci = Si[ip-k];
+                            tempr+= ar*(br+cr)-ai*(bi-ci);
+                            tempi+= ar*(bi+ci)+ai*(br-cr);
+                        }
+                        if (w_flag[modneg+u+k]) {
+                            ar = wr[modneg+u+k];
+                            ai = wi[modneg+u+k];
+                            br = Sr[ip+k];
+                            bi = Si[ip+k];
+                            cr = Sr[im+k];
+                            ci = Si[im+k];
+                            tempr+= ar*(br+cr)-ai*(bi-ci);
+                            tempi+= ar*(bi+ci)+ai*(br-cr);
+                        }
+                    }
+                }
+
+                for(r=rframe;r<Q;r++){  // for those only the left frames should be added
+                    int u = r*(L+1);
+                    int im = (m-r)*Np + n;
+                    // for frequency n
+                    if (w_flag[mod+u]) {
+                        ar = wr[mod+u];
+                        ai = wi[mod+u];
+                        br = Sr[im];
+                        bi = Si[im];
+                        tempr+= ar*(br)-ai*(bi);
+                        tempi+= ar*(bi)+ai*(br);
+                    }
+                    // for frequencies n+/-k
+                    for(k=1;k<L+1;k++){
+                        if (w_flag[mod+u+k]) {
+                            ar = wr[mod+u+k];
+                            ai = wi[mod+u+k];
+                            br = Sr[im-k];
+                            bi = Si[im-k];
+                            tempr+= ar*(br)-ai*(bi);
+                            tempi+= ar*(bi)+ai*(br);
+                        }
+                        if (w_flag[modneg+u+k]) {
+                            ar = wr[modneg+u+k];
+                            ai = wi[modneg+u+k];
+                            cr = Sr[im+k];
+                            ci = Si[im+k];
+                            tempr+= ar*(cr)+ai*(ci);
+                            tempi+= ar*(ci)-ai*(cr);
+                        }
+                    }
+                }
+
+
+                abstemp = sqrt(pow(tempr, 2.)+pow(tempi, 2.));
+                if((abstemp>0)){
+                    // update the phase
+                    Sr[m*Np+n]= tempr*absspec/abstemp;
+                    Si[m*Np+n]= tempi*absspec/abstemp;
+                    // propagate changes in the extended regions
+                    if((n>=L+1)&&(n<2*L+1)){
+                        Sr[m*Np+2*L-n]= Sr[m*Np+n];
+                        Si[m*Np+2*L-n]= -Si[m*Np+n];
+                    }else if((n>=Nreal-1)&&(n<Naux)){
+                        Sr[m*Np+2*Naux-n] = Sr[m*Np+n];
+                        Si[m*Np+2*Naux-n] = -Si[m*Np+n];
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 void TF_RTISI_LA(double *Sr, double *Si, double *wr, double *wi, 
         double *wr_asym_init, double *wi_asym_init, double *wr_asym_full, double *wi_asym_full, int *w_flag, int *w_flag_ai, int *w_flag_af,  
-        double *AmpSpec, int iter, int LA, int Nreal, int M, int L, int Q, double *ThresholdArray, int update)
+        double *AmpSpec, int iter, int LA, int Nreal, int M, int L, int Q, double Qfloat, int use_summarized_weights, double *ThresholdArray, int update)
 {
     int Np=Nreal+2*L;
     double threshold;
@@ -1122,8 +1437,20 @@ void TF_RTISI_LA(double *Sr, double *Si, double *wr, double *wi,
             lframe=0;
             nframe=m;
         }
-        
-        if (Q==2){
+
+        if (!use_summarized_weights){
+            // Initial phase estimate for the newest uncommitted frame
+            Asym_UpdatePhasefractionalQ(Sr+m*Np, Si+m*Np, wr_asym_init, wi_asym_init, w_flag_ai, AmpSpec+m*Np, Nreal, 1, 0, L, Q, Qfloat, 0., update);
+            for(int h=0;h<iter;h++){
+                threshold = ThresholdArray[h];
+                // Deal with the other frames using the usual window
+                if(LA>0){
+                    Asym_UpdatePhasefractionalQ(Sr+lframe*Np, Si+lframe*Np, wr, wi, w_flag, AmpSpec+lframe*Np, Nreal, nframe, nframe+1, L, Q, Qfloat, threshold, update);
+                }
+                // Deal with the newest frame first with the asymmetric window
+                Asym_UpdatePhasefractionalQ(Sr+m*Np, Si+m*Np, wr_asym_full, wi_asym_full, w_flag_af, AmpSpec+m*Np, Nreal, 1, 1, L, Q, Qfloat, threshold, update);
+            } // end LOOP on iterations
+        }else if (Q==2){
             // Initial phase estimate for the newest uncommitted frame
             Asym_UpdatePhaseQ2(Sr+m*Np,Si+m*Np,wr_asym_init,wi_asym_init,w_flag_ai,AmpSpec+m*Np,Nreal,1,0,L,0.,update);
             for(int h=0;h<iter;h++){            
@@ -1149,7 +1476,7 @@ void TF_RTISI_LA(double *Sr, double *Si, double *wr, double *wi,
             } // end LOOP on iterations
         }else {
             // Initial phase estimate for the newest uncommitted frame
-        Asym_UpdatePhaseanyQ(Sr+m*Np, Si+m*Np, wr_asym_init, wi_asym_init, w_flag_ai, AmpSpec+m*Np, Nreal, 1, 0, L, Q, 0., update);
+            Asym_UpdatePhaseanyQ(Sr+m*Np, Si+m*Np, wr_asym_init, wi_asym_init, w_flag_ai, AmpSpec+m*Np, Nreal, 1, 0, L, Q, 0., update);
             for(int h=0;h<iter;h++){
                 threshold = ThresholdArray[h];
                 // Deal with the other frames using the usual window

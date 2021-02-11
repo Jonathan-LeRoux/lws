@@ -1,7 +1,7 @@
 Fast spectrogram phase recovery using Local Weighted Sums (LWS)
 ===============================================================
 
-Author: Jonathan Le Roux -- 2008-2019
+Author: Jonathan Le Roux -- 2008-2021
 
 [![PyPI version](https://badge.fury.io/py/lws.svg)](https://badge.fury.io/py/lws)
 
@@ -33,7 +33,7 @@ The LWS software includes the following files:
 License
 -------
 
-Copyright (C) 2008-2019 Jonathan Le Roux
+Copyright (C) 2008-2021 Jonathan Le Roux
 Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
 Citing this code
@@ -131,7 +131,7 @@ Three steps are implemented, and they can be turned on/off independently:
     ```sh
     cd python
     make sdist
-    pip install dist/lws-1.2.6.tar.gz
+    pip install dist/lws-1.2.7.tar.gz
     ```
 
 **Note:** On Windows, the Microsoft Visual C++ Compiler for your version of Python needs to be installed. See [this page](https://wiki.python.org/moin/WindowsCompilers) for more details.

@@ -1,11 +1,11 @@
 #cython: language_level=3
 from __future__ import division
+from builtins import range, int
 cimport lwslib
 cimport numpy as np
 import numpy as np
-import scipy
 
-__version__ = "1.2.6"
+__version__ = "1.2.7"
 
 def hann(n,symmetric=True,use_offset = False):
     if symmetric:
@@ -82,9 +82,9 @@ def stft(x,fsize,fshift,awin,fftsize=None,perfectrec=False):
     x = np.hstack((x, np.zeros(((M-1)*fshift + fsize - T,))))
     spec=np.zeros([M,fftsize//2+1]).astype('complex128')
     
-    for m in xrange(M):
+    for m in range(M):
         frame = x[frame_starts[m]:frame_starts[m] + fsize]*awin
-        temp  = scipy.fft(np.squeeze(frame),n=fftsize)
+        temp  = np.fft.fft(np.squeeze(frame),n=fftsize)
         spec[m]=temp[:fftsize//2+1]
 
     return spec
@@ -118,8 +118,8 @@ def istft(spec,fshift,swin,awin=None,fftsize=None,perfectrec=False):
 
     x_ran=np.arange(fsize)
 
-    for s in xrange(M):
-        iframe=np.real(scipy.ifft(np.concatenate((spec[s], spec[s][-2:0:-1].conjugate())),
+    for s in range(M):
+        iframe=np.real(np.fft.ifft(np.concatenate((spec[s], spec[s][-2:0:-1].conjugate())),
                                   n=fftsize))
 
         iframe= iframe[0:fsize]
@@ -157,21 +157,27 @@ def extspec(S, L, Q):
     return ExtS
     
 
-def create_weights(awin,swin,fshift,L):
-    #  Compute the (L+1)xQxQ matrix of complex weights used by the LWS code
+def create_weights(awin,swin,fshift,L,use_summarized_weights=True):
+    #  Compute the (L+1)xQxQ (or (L+1)xNxQ) matrix of complex weights used by the LWS code
     T = len(awin)
-    Q = np.int(T/fshift)
+    Q = np.int(np.ceil(np.float(T) / np.float(fshift)))
+    #Q = np.int(T/fshift)
+    Qfloat = np.float(T) / np.float(fshift)
+    if T % fshift == 0 and use_summarized_weights:
+        Qprime = Q
+    else:
+        Qprime = T
     interval = np.arange(L+1)
     expinterv= np.exp(-1j*2*np.pi*np.atleast_2d(interval).T*np.arange(T)/T)
     windowprod = np.zeros((T,Q))
     for q in range(Q):
         index=np.arange(T-q*fshift)
         windowprod[index,q] = awin[index] * swin[index+q*fshift]/T
-    W = (expinterv.dot(windowprod)) * np.exp(-1j*2*np.pi*np.atleast_2d(interval).T*np.arange(Q)/Q)
+    W = (expinterv.dot(windowprod)) * np.exp(-1j*2*np.pi*np.atleast_2d(interval).T*np.arange(Q)/Qfloat)
     W[0,0] = W[0,0] - 1
-    tmp = np.exp(1j*2*np.pi*np.atleast_2d(np.arange(Q)).T*np.arange(Q)/Q)
+    tmp = np.exp(1j*2*np.pi*np.atleast_2d(np.arange(Qprime)).T*np.arange(Q)/Qfloat)
     W = W[:,np.newaxis] * tmp[np.newaxis,:]
-    W = W.transpose((1,2,0)) # get back to row-major ordering, W is now Q*Q*(L+1)
+    W = W.transpose((1,2,0)) # get back to row-major ordering, W is now Qprime*Q*(L+1)
     return W
 
 
@@ -180,7 +186,7 @@ def build_asymmetric_windows(awin_swin,fshift):
     # Note that the input awin_swin should be the *product* of the analysis and
     # synthesis windows.
     T = len(awin_swin)
-    Q = np.int(T/fshift)
+    Q = np.int(np.ceil(np.float(T) / np.float(fshift)))
     tmp = np.zeros((T,Q))
     tmp[:,0] = awin_swin
     for q in range(Q):
@@ -189,7 +195,7 @@ def build_asymmetric_windows(awin_swin,fshift):
     
     win_ai = np.sum(tmp[:,1:],axis=1)[::-1]
     win_af = np.sum(tmp,axis=1)[::-1]
-    if Q == 2:
+    if T % fshift == 2: # this hack probably only works when we actually have T=2*fshift, not Q rounded to 2
         win_ai = awin_swin
     return win_ai, win_af
 
@@ -200,14 +206,15 @@ def get_thresholds(iterations,alpha,beta,gamma):
     return thresholds
 
 
-def batch_lws(S,W,thresholds):
+def batch_lws(S,W,thresholds,use_simplifications=True):
     # Batch mode LWS phase reconstruction
 
     if S.dtype != np.complex128:
         S = S.astype(np.complex128)
     
     cdef int L = W.shape[2] - 1
-    cdef int Q = W.shape[0]
+    cdef int Q = W.shape[1]
+    cdef int Qprime = W.shape[0]
     cdef int iterations = len(thresholds)
     if iterations == 0:
         return S
@@ -236,7 +243,9 @@ def batch_lws(S,W,thresholds):
     cdef double threshold
     for i in range(iterations):
         threshold = thresholds[i] * mean_amp
-        if Q == 2:
+        if Q != Qprime or not use_simplifications:
+            lwslib.LWSfractionalQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, Q, threshold)
+        elif Q == 2:
             lwslib.LWSQ2(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
         elif Q == 4:
             lwslib.LWSQ4(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
@@ -249,7 +258,7 @@ def batch_lws(S,W,thresholds):
     return S_out
 
 
-def nofuture_lws(S,W,thresholds):
+def nofuture_lws(S,W,thresholds,use_simplifications=True):
     # Batch mode LWS phase reconstruction only considering past frames.
     # Typically only use for initialization.
     
@@ -257,7 +266,8 @@ def nofuture_lws(S,W,thresholds):
         S = S.astype(np.complex128)
     
     cdef int L = W.shape[2] - 1
-    cdef int Q = W.shape[0]
+    cdef int Q = W.shape[1]
+    cdef int Qprime = W.shape[0]
     cdef int iterations = len(thresholds)
     if iterations == 0:
         return S
@@ -286,7 +296,9 @@ def nofuture_lws(S,W,thresholds):
     cdef double threshold
     for i in range(iterations):
         threshold = thresholds[i] * mean_amp
-        if Q == 2:
+        if Q != Qprime or not use_simplifications:
+            lwslib.NoFuture_LWSfractionalQ(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L,Q, threshold)
+        elif Q == 2:
             lwslib.NoFuture_LWSQ2(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
         elif Q == 4:
             lwslib.NoFuture_LWSQ4(&ExtSr[0,0], &ExtSi[0,0], &Wr[0,0,0], &Wi[0,0,0], &Wflag[0,0,0], &AmpSpec[0,0], Nreal, T, L, threshold)
@@ -304,14 +316,18 @@ def online_lws(S,
                W_ai, #W_asym_init, 
                W_af, #W_asym_full, 
                np.ndarray[np.double_t, ndim=1] thresholds,
-               int LA):
+               int LA,
+               int fshift,
+               use_simplifications=True):
     # Online mode LWS phase reconstruction
     
     if S.dtype != np.complex128:
         S = S.astype(np.complex128)
 
     cdef int L = W.shape[2] - 1
-    cdef int Q = W.shape[0]
+    cdef int Q = W.shape[1]
+    cdef int Qprime = W.shape[0]
+    cdef bint use_summarized_weights = (Q == Qprime) and use_simplifications
     cdef int iterations = len(thresholds)
     if iterations == 0:
         return S
@@ -320,7 +336,8 @@ def online_lws(S,
     if Nreal % 2 == 0:
         raise ValueError('Please only include non-negative frequencies in the input spectrogram.')
     cdef int N = 2*(Nreal-1)
-    
+    cdef double Qfloat = float(N / fshift)
+
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wr = np.ascontiguousarray(W.real)
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wi = np.ascontiguousarray(W.imag)
     cdef np.ndarray[np.double_t, ndim=3, mode="c"] Wr_ai = np.ascontiguousarray(W_ai.real)
@@ -349,7 +366,7 @@ def online_lws(S,
                 &Wr_ai[0,0,0], &Wi_ai[0,0,0], &Wr_af[0,0,0], &Wi_af[0,0,0],
                 &Wflag[0,0,0], &Wflag_ai[0,0,0], &Wflag_af[0,0,0],
                 &AmpSpec[0,0],
-                iterations, LA, Nreal, T, L, Q, 
+                iterations, LA, Nreal, T, L, Q, Qfloat, use_summarized_weights,
                 &thresholds[0], update_type)
 
     # Extract the non-redundant part of the spectrogram
@@ -363,8 +380,8 @@ class lws(object):
                  nofuture_iterations = 0, nofuture_alpha = 1, nofuture_beta = 0.1, nofuture_gamma = 1,
                  online_iterations = 0, online_alpha = 1, online_beta = 0.1, online_gamma = 1,
                  batch_iterations = 100, batch_alpha = 100, batch_beta = 0.1, batch_gamma = 1,
-                 symmetric_win = True, mode= None, fftsize=None, perfectrec=True):
-        if isinstance(awin_or_fsize, ( int, long ) ):
+                 symmetric_win = True, mode= None, fftsize=None, perfectrec=True, use_simplifications=True):
+        if isinstance(awin_or_fsize, int):
                 # a frame size was passed in, build default perfect-reconstruction window
                 awin = np.sqrt(hann(awin_or_fsize,symmetric=symmetric_win,use_offset=False))
                 awin = np.sqrt( awin * synthwin(awin,fshift) )
@@ -400,11 +417,16 @@ class lws(object):
         self.fsize = len(awin)
         self.perfectrec = perfectrec
         self.L = L
-        self.Q = np.int(self.fsize/self.fshift)
-        self.W = create_weights(self.awin,self.swin,self.fshift,self.L)
+        # currently not used, but could be used to tell whether really Q=2 or 4
+        if self.fsize % self.fshift == 0:
+            self.Q = np.int(self.fsize/self.fshift)
+        else:
+            self.Q = self.fsize/self.fshift
+        self.use_simplifications = use_simplifications
+        self.W = create_weights(self.awin,self.swin,self.fshift,self.L,use_summarized_weights=self.use_simplifications)
         self.win_ai, self.win_af = build_asymmetric_windows(self.awin * self.swin, self.fshift)
-        self.W_ai = create_weights(self.win_ai,self.swin,self.fshift,self.L)
-        self.W_af = create_weights(self.win_af,self.swin,self.fshift,self.L)
+        self.W_ai = create_weights(self.win_ai,self.swin,self.fshift,self.L,use_summarized_weights=self.use_simplifications)
+        self.W_af = create_weights(self.win_af,self.swin,self.fshift,self.L,use_summarized_weights=self.use_simplifications)
         self.look_ahead = look_ahead
         
         if mode == 'speech':
@@ -427,7 +449,6 @@ class lws(object):
         self.nofuture_beta  = nofuture_beta
         self.nofuture_gamma = nofuture_gamma
 
-        
         if (not np.allclose(awin, awin[::-1])):
             print('WARNING: It appears you are using an analysis window that is not symmetric.\n'
                   'The current code uses simplifications that rely on such symmetry, so the code may not behave properly.')
@@ -451,7 +472,7 @@ class lws(object):
             iterations = self.nofuture_iterations
         if thresholds is None:
             thresholds = get_thresholds(iterations,self.nofuture_alpha,self.nofuture_beta,self.nofuture_gamma)
-        return nofuture_lws(S,self.W_ai,thresholds)
+        return nofuture_lws(S,self.W_ai,thresholds,use_simplifications=self.use_simplifications)
 
 
     def online_lws(self,S,iterations=None,thresholds=None):
@@ -459,7 +480,8 @@ class lws(object):
             iterations = self.online_iterations
         if thresholds is None:
             thresholds = get_thresholds(iterations,self.online_alpha,self.online_beta,self.online_gamma)
-        return online_lws(S,self.W,self.W_ai,self.W_af,thresholds,self.look_ahead)
+        return online_lws(S,self.W,self.W_ai,self.W_af,thresholds,
+                          self.look_ahead,self.fshift,use_simplifications=self.use_simplifications)
 
 
     def batch_lws(self,S,iterations=None,thresholds=None):
@@ -467,7 +489,7 @@ class lws(object):
             iterations = self.batch_iterations
         if thresholds is None:
             thresholds = get_thresholds(iterations,self.batch_alpha,self.batch_beta,self.batch_gamma)
-        return batch_lws(S,self.W,thresholds)
+        return batch_lws(S,self.W,thresholds,use_simplifications=self.use_simplifications)
         
 
     def run_lws(self,S):
