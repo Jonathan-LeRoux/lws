@@ -22,7 +22,7 @@ def hann(n,symmetric=True,use_offset = False):
 def synthwin(awin,fshift,swin=None):
     # returns the normalized synthesis window for perfect reconstruction
     fsize = len(awin)
-    Q = np.int(np.ceil(np.float(fsize) / np.float(fshift)))
+    Q = int(np.ceil(float(fsize) / float(fshift)))
     if swin is None:
         swin = awin
     twin = awin * swin                              
@@ -160,9 +160,9 @@ def extspec(S, L, Q):
 def create_weights(awin,swin,fshift,L,use_summarized_weights=True):
     #  Compute the (L+1)xQxQ (or (L+1)xNxQ) matrix of complex weights used by the LWS code
     T = len(awin)
-    Q = np.int(np.ceil(np.float(T) / np.float(fshift)))
-    #Q = np.int(T/fshift)
-    Qfloat = np.float(T) / np.float(fshift)
+    Q = int(np.ceil(float(T) / float(fshift)))
+    #Q = int(T/fshift)
+    Qfloat = float(T) / float(fshift)
     if T % fshift == 0 and use_summarized_weights:
         Qprime = Q
     else:
@@ -186,7 +186,7 @@ def build_asymmetric_windows(awin_swin,fshift):
     # Note that the input awin_swin should be the *product* of the analysis and
     # synthesis windows.
     T = len(awin_swin)
-    Q = np.int(np.ceil(np.float(T) / np.float(fshift)))
+    Q = int(np.ceil(float(T) / float(fshift)))
     tmp = np.zeros((T,Q))
     tmp[:,0] = awin_swin
     for q in range(Q):
@@ -419,7 +419,7 @@ class lws(object):
         self.L = L
         # currently not used, but could be used to tell whether really Q=2 or 4
         if self.fsize % self.fshift == 0:
-            self.Q = np.int(self.fsize/self.fshift)
+            self.Q = int(self.fsize/self.fshift)
         else:
             self.Q = self.fsize/self.fshift
         self.use_simplifications = use_simplifications
