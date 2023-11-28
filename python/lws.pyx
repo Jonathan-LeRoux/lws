@@ -5,7 +5,7 @@ cimport lwslib
 cimport numpy as np
 import numpy as np
 
-__version__ = "1.2.7"
+__version__ = "1.2.8"
 
 def hann(n,symmetric=True,use_offset = False):
     if symmetric:
